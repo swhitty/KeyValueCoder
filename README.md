@@ -68,7 +68,7 @@ let defaults = UserDefaults.standard.dictionaryRepresentation()
 
 [
   "owner": ["id": 99, "name": "Herbert"],
-  "url": URL(string: "fish.com”),
+  "url": URL(string: "fish.com"),
   "duration": [0, 1000000000]
 
 ]
