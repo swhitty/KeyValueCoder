@@ -44,7 +44,7 @@ try UserDefaults.standard.encode(
 )
 
 try UserDefaults.standard.encode(
-  URL(string: "fish.com), 
+  URL(string: "fish.com"), 
   forKey: "url"
 )
 
