@@ -20,7 +20,7 @@ jobs:
       - name: Test
         run: swift test --enable-code-coverage --skip-build
       - name: Gather code coverage
-        run: xcrun llvm-cov export -format="lcov" .build/debug/DictionaryDecoderPackageTests.xctest/Contents/MacOS/DictionaryDecoderPackageTests -instr-profile .build/debug/codecov/default.profdata > coverage_report.lcov
+        run: xcrun llvm-cov export -format="lcov" .build/debug/KeyValueCoderPackageTests.xctest/Contents/MacOS/KeyValueCoderPackageTests -instr-profile .build/debug/codecov/default.profdata > coverage_report.lcov
       - name: Upload Coverage
         uses: codecov/codecov-action@v3
         with:
