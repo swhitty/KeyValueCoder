@@ -95,6 +95,6 @@ UserDefaults.standard.set(
   forKey: "users"
 )
 
-// throws DecodingError.valueNotFound 'Expected String at SELF[1], found nil'
+// throws DecodingError.valueNotFound 'Expected String at SELF[1].name, found nil'
 let users = try UserDefaults.standard.decode([User].self, forKey: "users") 
 ```
