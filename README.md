@@ -1,0 +1,93 @@
+[![Build](https://github.com/swhitty/KeyValueCoder/actions/workflows/build.yml/badge.svg)](https://github.com/swhitty/KeyValueCoder/actions/workflows/build.yml)
+[![CodeCov](https://codecov.io/gh/swhitty/KeyValueCoder/branch/master/graphs/badge.svg)](https://codecov.io/gh/swhitty/KeyValueCoder/branch/master)
+[![Swift 5.8](https://img.shields.io/badge/swift-5.7%20–%205.8-red.svg?style=flat)](https://developer.apple.com/swift)
+[![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)](https://opensource.org/licenses/MIT)
+[![Twitter](https://img.shields.io/badge/twitter-@simonwhitty-blue.svg)](http://twitter.com/simonwhitty)
+
+# KeyValueCoder
+A Swift library for serializing `Codable` types to and from `Any` and `UserDefaults`.
+
+## Usage
+
+Keyed types are encoded to a `[String: Any]`
+
+```swift
+struct User: Codable {
+   var id: Int
+   var name: String
+}
+
+// Decode from [String: Any]
+let user = try KeyValueCoder().decode(
+  User.self, 
+  from: ["id": 99, "name": "Herbert"]
+)
+
+// Encode to [String: Any]
+let dict = try KeyValueCoder().encode(person)
+```
+
+RawRepresentable types are encoded to their raw value:
+
+```
+// Encode to RawValue
+let string = try KeyValueCoder().encode(Food(rawValue: "fish"))
+```
+
+## UserDefaults
+Store and retrieve any `Codable` type within UserDefaults:
+
+```swift
+try UserDefaults.standard.encode(
+  User(id: "99", name: "Herbert"), 
+  forKey: "owner"
+)
+
+try UserDefaults.standard.encode(
+  URL(string: "fish.com), 
+  forKey: "url"
+)
+
+try UserDefaults.standard.encode(
+  Duration.nanoseconds(1), 
+  forKey: "duration"
+)
+```
+
+Types are persisted in a friendly representation of plist native types:
+
+```swift
+let defaults = UserDefaults.standard.dictionaryRepresentation()
+
+[
+  "owner": ["id": 99, "name": "Herbert"],
+  "url": URL(string: "fish.com),
+  "duration": [0, 1000000000]
+
+]
+```
+
+Decode values from the defaults:
+
+```swift
+let owner = try UserDefaults.standard.decode(Person.self, forKey: "owner")
+
+let url = try UserDefaults.standard.decode(URL.self, forKey: "url") 
+
+let duration = try UserDefaults.standard.decode(Duration.self, forKey: "duration")
+```
+
+[`DecodingError`](https://developer.apple.com/documentation/swift/decodingerror) is thrown when decoding fails. [`Context`](https://developer.apple.com/documentation/swift/decodingerror/context) will include a keyPath to the failed property.
+
+```swift
+UserDefaults.standard.set(
+  [
+      ["id": 99, "name": "Herbert"],
+      ["id": 100]
+  ],
+  forKey: "users"
+)
+
+// throws DecodingError.valueNotFound 'Expected String at SELF[1], found nil'
+let users = try UserDefaults.standard.decode([User].self, forKey: "url") 
+```

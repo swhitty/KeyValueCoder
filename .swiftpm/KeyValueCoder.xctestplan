@@ -1,0 +1,32 @@
+{
+  "configurations" : [
+    {
+      "id" : "6E86193E-59E6-4E14-82D8-93E688828AEA",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "codeCoverage" : {
+      "targets" : [
+        {
+          "containerPath" : "container:",
+          "identifier" : "KeyValueCoder",
+          "name" : "KeyValueCoder"
+        }
+      ]
+    }
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "KeyValueCoderTests",
+        "name" : "KeyValueCoderTests"
+      }
+    }
+  ],
+  "version" : 1
+}
