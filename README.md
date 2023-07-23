@@ -18,22 +18,29 @@ struct User: Codable {
 }
 
 // Decode from [String: Any]
-let user = try KeyValueCoder().decode(
+let user = try KeyValueEncoder().decode(
   User.self, 
   from: ["id": 99, "name": "Herbert"]
 )
 
 // Encode to [String: Any]
-let dict = try KeyValueCoder().encode(person)
+let dict = try KeyValueEncoder().encode(user)
 ```
 
 RawRepresentable types are encoded to their raw value:
 
 ```swift
 // Encode to RawValue
-let string = try KeyValueCoder().encode(Food(rawValue: "fish"))
+let string = try KeyValueEncoder().encode(Food(rawValue: "fish"))
 ```
 
+Decode values from `Any`:
+
+```swift
+let user = try KeyValuDecoder().decode(User.self, from: ["id": 99, "name": "Herbert"])
+
+let food = try KeyValuDecoder().decode(Food.self, from: "fish")
+```
 ## UserDefaults
 Store and retrieve any `Codable` type within UserDefaults:
 
