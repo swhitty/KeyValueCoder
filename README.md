@@ -54,7 +54,7 @@ try UserDefaults.standard.encode(
 )
 ```
 
-Types are persisted in a friendly representation of plist native types:
+Values are persisted in a friendly representation of plist native types:
 
 ```swift
 let defaults = UserDefaults.standard.dictionaryRepresentation()
