@@ -30,7 +30,7 @@ let dict = try KeyValueEncoder().encode(user)
 RawRepresentable types are encoded to their raw value:
 
 ```swift
-// Encode to RawValue
+// Encode to String
 let string = try KeyValueEncoder().encode(Food(rawValue: "fish"))
 ```
 
