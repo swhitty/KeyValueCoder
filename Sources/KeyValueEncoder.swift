@@ -34,36 +34,88 @@ import Foundation
 public final class KeyValueEncoder {
 
     public var userInfo: [CodingUserInfoKey: Any]
+    public var nilEncodingStrategy: NilEncodingStrategy = .default
 
     public init () {
         self.userInfo = [:]
     }
 
-    public func encode<T>(_ value: T) throws -> Any where T: Encodable {
-        try encodeValue(value).getValue()
+    public func encode<T>(_ value: T) throws -> Any? where T: Encodable {
+        try encodeValue(value).getValue(strategy: nilEncodingStrategy)
     }
 
     func encodeValue<T>(_ value: T) throws -> EncodedValue where T: Encodable {
-        try Encoder(userInfo: userInfo).encodeToValue(value)
+        try Encoder(userInfo: userInfo, nilEncodingStrategy: nilEncodingStrategy).encodeToValue(value)
+    }
+
+    public enum NilEncodingStrategy {
+        case removed
+        case placeholder(Any, isNull: (Any) -> Bool)
+
+        public static let `default` = NilEncodingStrategy.placeholder(Optional<Any>.none as Any, isNull: isOptionalNone)
+        public static let stringNull = NilEncodingStrategy.placeholder("$null", isNull: { ($0 as? String == "$null") })
+        public static let nsNull = NilEncodingStrategy.placeholder(NSNull(), isNull: { $0 is NSNull })
     }
 }
 
 extension KeyValueEncoder {
+
+    static func makePlistCompatible() -> KeyValueEncoder {
+        let encoder = KeyValueEncoder()
+        encoder.nilEncodingStrategy = .stringNull
+        return encoder
+    }
 
     enum EncodedValue {
         case null
         case value(Any)
         case provider(() throws -> EncodedValue)
 
-        func getValue() throws -> Any {
+        func getValue(strategy: NilEncodingStrategy) throws -> Any? {
             switch self {
             case .null:
-                return Optional<Any>.none as Any
+                return strategy.value
             case let .value(val):
                 return val
             case let .provider(closure):
-                return try closure().getValue()
+                return try closure().getValue(strategy: strategy)
             }
+        }
+    }
+}
+
+extension KeyValueEncoder.NilEncodingStrategy {
+
+    func isNull(_ value: Any?) -> Bool {
+        guard let value else { return true }
+        return isNull(value)
+    }
+
+    func isNull(_ value: Any) -> Bool {
+        switch self {
+        case .removed:
+            return Self.isOptionalNone(value)
+        case .placeholder(_, isNull: let closure):
+            return closure(value)
+        }
+    }
+
+    static func isOptionalNone(_ value: Any) -> Bool {
+        if Mirror(reflecting: value).displayStyle == .optional,
+           case Optional<Any>.none = value {
+            return true
+        } else {
+            return false
+        }
+    }
+}
+
+private extension KeyValueEncoder.NilEncodingStrategy {
+
+    var value: Any? {
+        switch self {
+        case .removed: return nil
+        case .placeholder(let value, _): return value
         }
     }
 }
@@ -74,10 +126,12 @@ private extension KeyValueEncoder {
 
         let codingPath: [CodingKey]
         let userInfo: [CodingUserInfoKey: Any]
+        let nilEncodingStrategy: NilEncodingStrategy
 
-        init(codingPath: [CodingKey] = [], userInfo: [CodingUserInfoKey: Any]) {
+        init(codingPath: [CodingKey] = [], userInfo: [CodingUserInfoKey: Any], nilEncodingStrategy: NilEncodingStrategy) {
             self.codingPath = codingPath
             self.userInfo = userInfo
+            self.nilEncodingStrategy = nilEncodingStrategy
         }
 
         private(set) var container: EncodedValue? {
@@ -88,26 +142,25 @@ private extension KeyValueEncoder {
 
         func getEncodedValue() throws -> EncodedValue {
             guard let container else {
-                let context = DecodingError.Context(codingPath: codingPath, debugDescription: "Expected value at \(codingPath.makeKeyPath()) found nil")
-                throw DecodingError.valueNotFound(Any.self, context)
+                return .value([String: Any]())
             }
             return container
         }
 
         func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> where Key: CodingKey {
-            let keyed = KeyedContainer<Key>(codingPath: codingPath, userInfo: userInfo)
+            let keyed = KeyedContainer<Key>(codingPath: codingPath, userInfo: userInfo, nilEncodingStrategy: nilEncodingStrategy)
             container = .provider(keyed.getEncodedValue)
             return KeyedEncodingContainer(keyed)
         }
 
         func unkeyedContainer() -> UnkeyedEncodingContainer {
-            let unkeyed = UnkeyedContainer(codingPath: codingPath, userInfo: userInfo)
+            let unkeyed = UnkeyedContainer(codingPath: codingPath, userInfo: userInfo, nilEncodingStrategy: nilEncodingStrategy)
             container = .provider(unkeyed.getEncodedValue)
             return unkeyed
         }
 
         func singleValueContainer() -> SingleValueEncodingContainer {
-            let single = SingleContainer(codingPath: codingPath, userInfo: userInfo)
+            let single = SingleContainer(codingPath: codingPath, userInfo: userInfo, nilEncodingStrategy: nilEncodingStrategy)
             container = .provider(single.getEncodedValue)
             return single
         }
@@ -126,11 +179,13 @@ private extension KeyValueEncoder {
 
         let codingPath: [CodingKey]
         private let userInfo: [CodingUserInfoKey: Any]
+        private let nilEncodingStrategy: NilEncodingStrategy
 
-        init(codingPath: [CodingKey], userInfo: [CodingUserInfoKey: Any]) {
+        init(codingPath: [CodingKey], userInfo: [CodingUserInfoKey: Any], nilEncodingStrategy: NilEncodingStrategy) {
             self.codingPath = codingPath
             self.storage = [:]
             self.userInfo = userInfo
+            self.nilEncodingStrategy = nilEncodingStrategy
         }
 
         private var storage: [String: EncodedValue]
@@ -144,7 +199,7 @@ private extension KeyValueEncoder {
         }
 
         func getEncodedValue() throws -> EncodedValue {
-            try .value(storage.mapValues { try $0.getValue() })
+            try .value(storage.compactMapValues { try $0.getValue(strategy: nilEncodingStrategy) })
         }
 
         func encodeNil(forKey key: Key) {
@@ -213,20 +268,24 @@ private extension KeyValueEncoder {
                 return
             }
 
-            let encoder = Encoder(codingPath: codingPath.appending(key: key), userInfo: userInfo)
-            try setValue(encoder.encodeToValue(value).getValue(), forKey: key)
+            let encoder = Encoder(codingPath: codingPath.appending(key: key), userInfo: userInfo, nilEncodingStrategy: nilEncodingStrategy)
+            if let value = try encoder.encodeToValue(value).getValue(strategy: nilEncodingStrategy) {
+                setValue(value, forKey: key)
+            } else {
+                setValue(.null, forKey: key)
+            }
         }
 
         func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type, forKey key: Key) -> KeyedEncodingContainer<NestedKey> {
             let path = codingPath.appending(key: key)
-            let keyed = KeyedContainer<NestedKey>(codingPath: path, userInfo: userInfo)
+            let keyed = KeyedContainer<NestedKey>(codingPath: path, userInfo: userInfo, nilEncodingStrategy: nilEncodingStrategy)
             storage[key.stringValue] = .provider(keyed.getEncodedValue)
             return KeyedEncodingContainer(keyed)
         }
 
         func nestedUnkeyedContainer(forKey key: K) -> UnkeyedEncodingContainer {
             let path = codingPath.appending(key: key)
-            let unkeyed = UnkeyedContainer(codingPath: path, userInfo: userInfo)
+            let unkeyed = UnkeyedContainer(codingPath: path, userInfo: userInfo, nilEncodingStrategy: nilEncodingStrategy)
             storage[key.stringValue] = .provider(unkeyed.getEncodedValue)
             return unkeyed
         }
@@ -237,7 +296,7 @@ private extension KeyValueEncoder {
 
         func superEncoder(forKey key: Key) -> Swift.Encoder {
             let path = codingPath.appending(key: key)
-            let encoder = Encoder(codingPath: path, userInfo: userInfo)
+            let encoder = Encoder(codingPath: path, userInfo: userInfo, nilEncodingStrategy: nilEncodingStrategy)
             storage[key.stringValue] = .provider(encoder.getEncodedValue)
             return encoder
         }
@@ -247,16 +306,18 @@ private extension KeyValueEncoder {
 
         let codingPath: [CodingKey]
         private let userInfo: [CodingUserInfoKey: Any]
+        private let nilEncodingStrategy: NilEncodingStrategy
 
-        init(codingPath: [CodingKey], userInfo: [CodingUserInfoKey: Any]) {
+        init(codingPath: [CodingKey], userInfo: [CodingUserInfoKey: Any], nilEncodingStrategy: NilEncodingStrategy) {
             self.codingPath = codingPath
             self.userInfo = userInfo
+            self.nilEncodingStrategy = nilEncodingStrategy
         }
 
         private var storage: [EncodedValue] = []
 
         func getEncodedValue() throws -> EncodedValue {
-            return try .value(storage.map { try $0.getValue() })
+            return try .value(storage.compactMap { try $0.getValue(strategy: nilEncodingStrategy) })
         }
 
         public var count: Int {
@@ -337,27 +398,31 @@ private extension KeyValueEncoder {
                 return
             }
 
-            let encoder = Encoder(codingPath: codingPath.appending(index: count), userInfo: userInfo)
-            try appendValue(encoder.encodeToValue(value).getValue())
+            let encoder = Encoder(codingPath: codingPath.appending(index: count), userInfo: userInfo, nilEncodingStrategy: nilEncodingStrategy)
+            if let value = try encoder.encodeToValue(value).getValue(strategy: nilEncodingStrategy) {
+                appendValue(value)
+            } else {
+                appendValue(.null)
+            }
         }
 
         func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type) -> KeyedEncodingContainer<NestedKey> {
             let path = codingPath.appending(index: count)
-            let keyed = KeyedContainer<NestedKey>(codingPath: path, userInfo: userInfo)
+            let keyed = KeyedContainer<NestedKey>(codingPath: path, userInfo: userInfo, nilEncodingStrategy: nilEncodingStrategy)
             storage.append(.provider(keyed.getEncodedValue))
             return KeyedEncodingContainer(keyed)
         }
 
         func nestedUnkeyedContainer() -> UnkeyedEncodingContainer {
             let path = codingPath.appending(index: count)
-            let unkeyed = UnkeyedContainer(codingPath: path, userInfo: userInfo)
+            let unkeyed = UnkeyedContainer(codingPath: path, userInfo: userInfo, nilEncodingStrategy: nilEncodingStrategy)
             storage.append(.provider(unkeyed.getEncodedValue))
             return unkeyed
         }
 
         func superEncoder() -> Swift.Encoder {
             let path = codingPath.appending(index: count)
-            let encoder = Encoder(codingPath: path, userInfo: userInfo)
+            let encoder = Encoder(codingPath: path, userInfo: userInfo, nilEncodingStrategy: nilEncodingStrategy)
             storage.append(.provider(encoder.getEncodedValue))
             return encoder
         }
@@ -367,16 +432,18 @@ private extension KeyValueEncoder {
 
         let codingPath: [CodingKey]
         private let userInfo: [CodingUserInfoKey: Any]
+        private let nilEncodingStrategy: NilEncodingStrategy
 
-        init(codingPath: [CodingKey], userInfo: [CodingUserInfoKey: Any]) {
+        init(codingPath: [CodingKey], userInfo: [CodingUserInfoKey: Any], nilEncodingStrategy: NilEncodingStrategy) {
             self.codingPath = codingPath
             self.userInfo = userInfo
+            self.nilEncodingStrategy = nilEncodingStrategy
         }
 
         private var value: EncodedValue?
 
         func getEncodedValue() throws -> EncodedValue {
-            guard let value else { return .null }
+            guard let value else { return .value([String: Any]()) }
             return value
         }
 
@@ -446,8 +513,12 @@ private extension KeyValueEncoder {
                 return
             }
 
-            let encoder = Encoder(codingPath: codingPath, userInfo: userInfo)
-            self.value = try .value(encoder.encodeToValue(value).getValue())
+            let encoder = Encoder(codingPath: codingPath, userInfo: userInfo, nilEncodingStrategy: nilEncodingStrategy)
+            if let value = try encoder.encodeToValue(value).getValue(strategy: nilEncodingStrategy) {
+                self.value = .value(value)
+            } else {
+                self.value = .null
+            }
         }
     }
 }

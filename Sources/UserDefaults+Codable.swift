@@ -34,8 +34,9 @@ import Foundation
 public extension UserDefaults {
 
     func encode<T: Encodable>(_ value: T, forKey key: String) throws {
-        let encoded = try KeyValueEncoder().encode(value)
-        if KeyValueDecoder.isValueNil(encoded) {
+        let encoder = KeyValueEncoder.makePlistCompatible()
+        let encoded = try encoder.encode(value)
+        if encoder.nilEncodingStrategy.isNull(encoded) {
             removeObject(forKey: key)
         } else {
             set(encoded, forKey: key)
@@ -44,6 +45,6 @@ public extension UserDefaults {
 
     func decode<T: Decodable>(_ type: T.Type = T.self, forKey key: String) throws -> T? {
         guard let storage = object(forKey: key) else { return nil }
-        return try KeyValueDecoder().decode(type, from: storage)
+        return try KeyValueDecoder.makePlistCompatible().decode(type, from: storage)
     }
 }

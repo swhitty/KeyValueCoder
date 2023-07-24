@@ -55,6 +55,47 @@ let meals = try KeyValuDecoder().decode([String].self, from: ["fish", 1])
 let user = try KeyValuDecoder().decode(User.self, from: [["id": 1, "name": "Herbert"], ["id:" 2])
 ```
 
+## Nil Encoding/Decoding Strategy
+
+The encoding of `Optional.none` can be adjusted by setting the strategy.  
+
+The default strategy preserves `Optional.none`:
+
+```swift
+let encoder = KeyValueEncoder()
+encoder.strategy = .default
+
+// [1, 2, nil, 3]
+let any = try encoder.encode([1, 2, Int?.none, 3])
+```
+
+Compatibility with [`PropertyListEncoder`](https://developer.apple.com/documentation/foundation/propertylistencoder) is preserved using a placeholder string:
+
+```swift
+encoder.strategy = .stringNull
+
+// [1, 2, "$null", 3]
+let any = try encoder.encode([1, 2, Int?.none, 3])
+```
+
+Compatibility with [`JSONSerialization`](https://developer.apple.com/documentation/foundation/jsonserialization) is preserved using [`NSNull`](https://developer.apple.com/documentation/foundation/nsnull):
+
+```swift
+encoder.strategy = .nsNull
+
+// [1, 2, NSNull(), 3]
+let any = try encoder.encode([1, 2, Int?.none, 3])
+```
+
+Nil values can also be completely removed:
+
+```swift
+encoder.strategy = .removed
+
+// [1, 2, 3]
+let any = try encoder.encode([1, 2, Int?.none, 3])
+```
+
 ## UserDefaults
 Encode and decode [`Codable`](https://developer.apple.com/documentation/swift/codable) types with [`UserDefaults`](https://developer.apple.com/documentation/foundation/userdefaults):
 

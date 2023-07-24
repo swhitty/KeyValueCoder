@@ -35,30 +35,26 @@ import CoreFoundation
 public final class KeyValueDecoder {
 
     public var userInfo: [CodingUserInfoKey: Any]
+    public var nilDecodingStrategy: NilDecodingStrategy = .default
 
     public init () {
         self.userInfo = [:]
     }
 
     public func decode<T: Decodable>(_ type: T.Type, from value: Any) throws -> T {
-        let container = SingleContainer(value: value, codingPath: [], userInfo: userInfo)
+        let container = SingleContainer(value: value, codingPath: [], userInfo: userInfo, nilDecodingStrategy: nilDecodingStrategy)
         return try container.decode(type)
     }
+
+    public typealias NilDecodingStrategy = KeyValueEncoder.NilEncodingStrategy
 }
 
 extension KeyValueDecoder {
 
-    // To assist in representing Optional<Any> because `Any` always casts to Optional<Any>
-    static func isValueNil(_ value: Any) -> Bool {
-        guard Mirror(reflecting: value).displayStyle == .optional else {
-            return value is NSNull
-        }
-
-        if case Optional<Any>.some = value {
-            return false
-        } else {
-            return true
-        }
+    static func makePlistCompatible() -> KeyValueDecoder {
+        let decoder = KeyValueDecoder()
+        decoder.nilDecodingStrategy = .stringNull
+        return decoder
     }
 }
 
@@ -80,14 +76,15 @@ private extension KeyValueDecoder {
             let keyed = try KeyedContainer<Key>(
                 codingPath: codingPath,
                 storage: container.decode([String: Any].self),
-                userInfo: userInfo
+                userInfo: userInfo,
+                nilDecodingStrategy: container.nilDecodingStrategy
             )
             return KeyedDecodingContainer(keyed)
         }
 
         func unkeyedContainer() throws -> UnkeyedDecodingContainer {
             let storage = try container.decode([Any].self)
-            return UnkeyedContainer(codingPath: codingPath, storage: storage, userInfo: userInfo)
+            return UnkeyedContainer(codingPath: codingPath, storage: storage, userInfo: userInfo, nilDecodingStrategy: container.nilDecodingStrategy)
         }
 
         func singleValueContainer() throws -> SingleValueDecodingContainer {
@@ -99,25 +96,23 @@ private extension KeyValueDecoder {
 
         let codingPath: [CodingKey]
         let userInfo: [CodingUserInfoKey: Any]
+        let nilDecodingStrategy: NilDecodingStrategy
 
         private var value: Any
 
-        init(value: Any, codingPath: [CodingKey], userInfo: [CodingUserInfoKey: Any]) {
+        init(value: Any, codingPath: [CodingKey], userInfo: [CodingUserInfoKey: Any], nilDecodingStrategy: NilDecodingStrategy) {
             self.value = value
             self.codingPath = codingPath
             self.userInfo = userInfo
+            self.nilDecodingStrategy = nilDecodingStrategy
         }
 
         func decodeNil() -> Bool {
-            KeyValueDecoder.isValueNil(value)
+            nilDecodingStrategy.isNull(value)
         }
 
         private var valueDescription: String {
-            if value is NSNull {
-                return "NSNull"
-            } else {
-                return decodeNil() ? "nil" : String(describing: type(of: value))
-            }
+            nilDecodingStrategy.isNull(value) ? "nil" : String(describing: type(of: value))
         }
 
         func getValue<T>(of type: T.Type = T.self) throws -> T {
@@ -289,11 +284,13 @@ private extension KeyValueDecoder {
         let storage: [String: Any]
         let codingPath: [CodingKey]
         private let userInfo: [CodingUserInfoKey: Any]
+        private let nilDecodingStrategy: NilDecodingStrategy
 
-        init(codingPath: [CodingKey], storage: [String: Any], userInfo: [CodingUserInfoKey: Any]) {
+        init(codingPath: [CodingKey], storage: [String: Any], userInfo: [CodingUserInfoKey: Any], nilDecodingStrategy: NilDecodingStrategy) {
             self.codingPath = codingPath
             self.storage = storage
             self.userInfo = userInfo
+            self.nilDecodingStrategy = nilDecodingStrategy
         }
 
         var allKeys: [Key] {
@@ -313,7 +310,7 @@ private extension KeyValueDecoder {
                 let context = DecodingError.Context(codingPath: codingPath, debugDescription: "Dictionary does not contain key \(keyPath)")
                 throw DecodingError.keyNotFound(key, context)
             }
-            return SingleContainer(value: value, codingPath: path, userInfo: userInfo)
+            return SingleContainer(value: value, codingPath: path, userInfo: userInfo, nilDecodingStrategy: nilDecodingStrategy)
         }
 
         func contains(_ key: Key) -> Bool {
@@ -389,7 +386,8 @@ private extension KeyValueDecoder {
             let keyed = try KeyedContainer<NestedKey>(
                 codingPath: container.codingPath,
                 storage: container.decode([String: Any].self),
-                userInfo: userInfo
+                userInfo: userInfo,
+                nilDecodingStrategy: nilDecodingStrategy
             )
             return KeyedDecodingContainer<NestedKey>(keyed)
         }
@@ -399,12 +397,13 @@ private extension KeyValueDecoder {
             return try UnkeyedContainer(
                 codingPath: container.codingPath,
                 storage: container.decode([Any].self),
-                userInfo: userInfo
+                userInfo: userInfo,
+                nilDecodingStrategy: nilDecodingStrategy
             )
         }
 
         func superDecoder() throws -> Swift.Decoder {
-            let container = SingleContainer(value: storage, codingPath: codingPath, userInfo: userInfo)
+            let container = SingleContainer(value: storage, codingPath: codingPath, userInfo: userInfo, nilDecodingStrategy: nilDecodingStrategy)
             return Decoder(container: container)
         }
 
@@ -419,11 +418,13 @@ private extension KeyValueDecoder {
 
         let storage: [Any]
         private let userInfo: [CodingUserInfoKey: Any]
+        private let nilDecodingStrategy: NilDecodingStrategy
 
-        init(codingPath: [CodingKey], storage: [Any], userInfo: [CodingUserInfoKey: Any]) {
+        init(codingPath: [CodingKey], storage: [Any], userInfo: [CodingUserInfoKey: Any], nilDecodingStrategy: NilDecodingStrategy) {
             self.codingPath = codingPath
             self.storage = storage
             self.userInfo = userInfo
+            self.nilDecodingStrategy = nilDecodingStrategy
             self.currentIndex = storage.startIndex
         }
 
@@ -444,7 +445,7 @@ private extension KeyValueDecoder {
                 let context = DecodingError.Context(codingPath: codingPath, debugDescription: "Array does not contain index \(keyPath)")
                 throw DecodingError.keyNotFound(AnyCodingKey(intValue: currentIndex), context)
             }
-            return SingleContainer(value: storage[currentIndex], codingPath: path, userInfo: userInfo)
+            return SingleContainer(value: storage[currentIndex], codingPath: path, userInfo: userInfo, nilDecodingStrategy: nilDecodingStrategy)
         }
 
         mutating func decodeNext<T: Decodable>(of type: T.Type = T.self) throws -> T {
@@ -532,7 +533,7 @@ private extension KeyValueDecoder {
         }
 
         mutating func superDecoder() -> Swift.Decoder {
-            let container = SingleContainer(value: storage, codingPath: codingPath, userInfo: userInfo)
+            let container = SingleContainer(value: storage, codingPath: codingPath, userInfo: userInfo, nilDecodingStrategy: nilDecodingStrategy)
             return Decoder(container: container)
         }
     }
