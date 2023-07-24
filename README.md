@@ -45,7 +45,7 @@ let meals = try KeyValuDecoder().decode([String].self, from: ["fish", "chips"])
 let user = try KeyValuDecoder().decode(User.self, from: ["id": 1, "name": "Herbert"])
 ```
 
-[`DecodingError`](https://developer.apple.com/documentation/swift/decodingerror) is thrown when decoding fails. [`Context`](https://developer.apple.com/documentation/swift/decodingerror/context) will include a keyPath to the failed property.
+[`DecodingError`](https://developer.apple.com/documentation/swift/decodingerror) is thrown when decoding fails. [`Context`](https://developer.apple.com/documentation/swift/decodingerror/context) includes a keyPath to the failed property.
 
 ```swift
 // throws DecodingError.typeMismatch 'Expected String at SELF[1], found Int'
