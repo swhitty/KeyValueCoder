@@ -66,7 +66,7 @@ The default strategy preserves `Optional.none`:
 
 ```swift
 let encoder = KeyValueEncoder()
-encoder.strategy = .default
+encoder.nilEncodingStrategy = .default
 
 // [1, 2, nil, 3]
 let any = try encoder.encode([1, 2, Int?.none, 3])
@@ -75,7 +75,7 @@ let any = try encoder.encode([1, 2, Int?.none, 3])
 Compatibility with [`PropertyListEncoder`](https://developer.apple.com/documentation/foundation/propertylistencoder) is preserved using a placeholder string:
 
 ```swift
-encoder.strategy = .stringNull
+encoder.nilEncodingStrategy = .stringNull
 
 // [1, 2, "$null", 3]
 let any = try encoder.encode([1, 2, Int?.none, 3])
@@ -84,7 +84,7 @@ let any = try encoder.encode([1, 2, Int?.none, 3])
 Compatibility with [`JSONSerialization`](https://developer.apple.com/documentation/foundation/jsonserialization) is preserved using [`NSNull`](https://developer.apple.com/documentation/foundation/nsnull):
 
 ```swift
-encoder.strategy = .nsNull
+encoder.nilEncodingStrategy = .nsNull
 
 // [1, 2, NSNull(), 3]
 let any = try encoder.encode([1, 2, Int?.none, 3])
@@ -93,7 +93,7 @@ let any = try encoder.encode([1, 2, Int?.none, 3])
 Nil values can also be completely removed:
 
 ```swift
-encoder.strategy = .removed
+encoder.nilEncodingStrategy = .removed
 
 // [1, 2, 3]
 let any = try encoder.encode([1, 2, Int?.none, 3])
