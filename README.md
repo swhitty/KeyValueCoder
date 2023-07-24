@@ -49,10 +49,10 @@ let user = try KeyValuDecoder().decode(User.self, from: ["id": 1, "name": "Herbe
 
 ```swift
 // throws DecodingError.typeMismatch 'Expected String at SELF[1], found Int'
-let meals = try KeyValuDecoder().decode([String].self, from: ["fish", 1])
+let meals = try KeyValueDecoder().decode([String].self, from: ["fish", 1])
 
 // throws DecodingError.valueNotFound 'Expected String at SELF[1].name, found nil'
-let user = try KeyValuDecoder().decode(User.self, from: [["id": 1, "name": "Herbert"], ["id:" 2])
+let user = try KeyValueDecoder().decode(User.self, from: [["id": 1, "name": "Herbert"], ["id:" 2])
 
 // throws DecodingError.typeMismatch 'Int at SELF[2], cannot be exactly represented by UInt8'
 let ascii = try KeyValueDecoder().decode([UInt8].self, from: [10, 100, 1000])
