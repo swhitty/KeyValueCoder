@@ -60,7 +60,7 @@ Encode and decode [`Codable`](https://developer.apple.com/documentation/swift/co
 
 ```swift
 try UserDefaults.standard.encode(
-  User(id: "99", name: "Herbert"), 
+  User(id: "1", name: "Herbert"), 
   forKey: "owner"
 )
 
@@ -81,7 +81,7 @@ Values are persisted in a friendly representation of plist native types:
 let defaults = UserDefaults.standard.dictionaryRepresentation()
 
 [
-  "owner": ["id": 99, "name": "Herbert"],
+  "owner": ["id": 1, "name": "Herbert"],
   "url": URL(string: "fish.com"),
   "duration": [0, 1000000000]
 ]
