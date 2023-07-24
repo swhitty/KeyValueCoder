@@ -56,7 +56,7 @@ let user = try KeyValuDecoder().decode(User.self, from: [["id": 1, "name": "Herb
 ```
 
 ## UserDefaults
-Encode and decode `Codable` types with UserDefaults:
+Encode and decode [`Codable`](https://developer.apple.com/documentation/swift/codable) types with [`UserDefaults`](https://developer.apple.com/documentation/foundation/userdefaults):
 
 ```swift
 try UserDefaults.standard.encode(
