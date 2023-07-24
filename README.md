@@ -16,7 +16,7 @@ A Swift library for serializing `Codable` types to and from `Any` and `UserDefau
 let any = try KeyValueEncoder().encode(Food(rawValue: "fish"))
 ```
 
-Collection types are encoded to `[Any]`:
+[`Collection`](https://developer.apple.com/documentation/swift/collection) types are encoded to `[Any]`:
 
 ```swift
 // ["fish", "chips"]
