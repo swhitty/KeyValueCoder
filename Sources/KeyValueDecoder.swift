@@ -32,21 +32,36 @@
 import Foundation
 import CoreFoundation
 
+/// Top level encoder that converts `[String: Any]`, `[Any]` or `Any` into `Codable` types.
 public final class KeyValueDecoder {
 
+    /// Contextual user-provided information for use during encoding.
     public var userInfo: [CodingUserInfoKey: Any]
+
+    /// The strategy to use for decoding `nil`. Defaults to `Optional<Any>.none` which can be decoded to any optional type.
     public var nilDecodingStrategy: NilDecodingStrategy = .default
 
+    /// Initializes `self` with default strategies.
     public init () {
         self.userInfo = [:]
     }
 
-    public func decode<T: Decodable>(_ type: T.Type, from value: Any) throws -> T {
+    ///
+    /// Decodes any loosely typed key value  into a `Decodable` type.
+    /// - Parameters:
+    ///   - type: The `Decodable` type to decode.
+    ///   - value: The value to decode. May be `[Any]`, `[String: Any]` or any supported primitive `Bool`,
+    ///            `String`, `Int`, `UInt`, `URL`, `Data` or `Decimal`.
+    /// - Returns: The decoded instance of `type`.
+    ///
+    /// - Throws: `DecodingError` if a value cannot be decoded. The context will contain a keyPath of the failed property.
+    public func decode<T: Decodable>(_ type: T.Type = T.self, from value: Any) throws -> T {
         let container = SingleContainer(value: value, codingPath: [], userInfo: userInfo, nilDecodingStrategy: nilDecodingStrategy)
         return try container.decode(type)
     }
 
-    public typealias NilDecodingStrategy = KeyValueEncoder.NilEncodingStrategy
+    /// Strategy used to decode nil values.
+    public typealias NilDecodingStrategy = NilCodingStrategy
 }
 
 extension KeyValueDecoder {

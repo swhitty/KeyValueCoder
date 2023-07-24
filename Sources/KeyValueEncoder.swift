@@ -31,31 +31,48 @@
 
 import Foundation
 
+/// Top level encoder that converts `Codable` instances into loosely typed `[String: Any]`, `[Any]` or `Any`.
 public final class KeyValueEncoder {
 
+    /// Contextual user-provided information for use during encoding.
     public var userInfo: [CodingUserInfoKey: Any]
+
+    /// The strategy to use for encoding `nil`. Defaults to `Optional<Any>.none` which can be cast to any optional type.
     public var nilEncodingStrategy: NilEncodingStrategy = .default
 
+    /// Initializes `self` with default strategies.
     public init () {
         self.userInfo = [:]
     }
 
+    /// Encodes a value into a loosely typed key value type. May be a container `[Any]`, `[String: Any]`
+    /// or any supported plist primitive `Bool`, `String`, `Int`, `UInt`, `URL`, `Data` or `Decimal`.
+    /// - Parameter value: The `Encodable` value to encode.
+    /// - Returns: The encoded value.
     public func encode<T>(_ value: T) throws -> Any? where T: Encodable {
         try encodeValue(value).getValue(strategy: nilEncodingStrategy)
     }
 
-    func encodeValue<T>(_ value: T) throws -> EncodedValue where T: Encodable {
-        try Encoder(userInfo: userInfo, nilEncodingStrategy: nilEncodingStrategy).encodeToValue(value)
-    }
+    /// Strategy used to encode nil values.
+    public typealias NilEncodingStrategy = NilCodingStrategy
+}
 
-    public enum NilEncodingStrategy {
-        case removed
-        case placeholder(Any, isNull: (Any) -> Bool)
+/// Strategy used to encode and decode nil values.
+public enum NilCodingStrategy {
+    /// `nil` values are removed
+    case removed
 
-        public static let `default` = NilEncodingStrategy.placeholder(Optional<Any>.none as Any, isNull: isOptionalNone)
-        public static let stringNull = NilEncodingStrategy.placeholder("$null", isNull: { ($0 as? String == "$null") })
-        public static let nsNull = NilEncodingStrategy.placeholder(NSNull(), isNull: { $0 is NSNull })
-    }
+    /// `nil` values are substituted with a placeholder value
+    case placeholder(Any, isNull: (Any) -> Bool)
+
+    /// `nil` values are substituted with `Optional<Any>.none`. Can be cast to any optional type.
+    public static let `default` = NilCodingStrategy.placeholder(Optional<Any>.none as Any, isNull: isOptionalNone)
+
+    /// `nil` values are substituted with `"$null"` placeholder string. Compatible with `PropertyListEncoder`.
+    public static let stringNull = NilCodingStrategy.placeholder("$null", isNull: { ($0 as? String == "$null") })
+
+    /// `nil` values are substituted with `"NSNull()"`. Compatible with `JSONSerialization`.
+    public static let nsNull = NilCodingStrategy.placeholder(NSNull(), isNull: { $0 is NSNull })
 }
 
 extension KeyValueEncoder {
@@ -81,6 +98,10 @@ extension KeyValueEncoder {
                 return try closure().getValue(strategy: strategy)
             }
         }
+    }
+
+    func encodeValue<T: Encodable>(_ value: T) throws -> EncodedValue{
+        try Encoder(userInfo: userInfo, nilEncodingStrategy: nilEncodingStrategy).encodeToValue(value)
     }
 }
 
