@@ -9,7 +9,21 @@ A Swift library for serializing `Codable` types to and from `Any` and `UserDefau
 
 ## Usage
 
-Keyed types are encoded to a `[String: Any]`
+[`RawRepresentable`](https://developer.apple.com/documentation/swift/rawrepresentable) types are encoded to their raw value:
+
+```swift
+// "fish"
+let any = try KeyValueEncoder().encode(Food(rawValue: "fish"))
+```
+
+Collection types are encoded to `[Any]`:
+
+```swift
+// ["fish", "chips"]
+let any = try KeyValueEncoder().encode(["fish", "chips"])
+```
+
+Structs and classes are encoded to a `[String: Any]`
 
 ```swift
 struct User: Codable {
@@ -17,32 +31,32 @@ struct User: Codable {
    var name: String
 }
 
-// Decode from [String: Any]
-let user = try KeyValueEncoder().decode(
-  User.self, 
-  from: ["id": 99, "name": "Herbert"]
-)
-
-// Encode to [String: Any]
-let dict = try KeyValueEncoder().encode(user)
-```
-
-RawRepresentable types are encoded to their raw value:
-
-```swift
-// Encode to String
-let string = try KeyValueEncoder().encode(Food(rawValue: "fish"))
+// ["id": 1, "name": "Herbert"]
+let any = try KeyValueEncoder().encode(User(id: 1, name: "Herbert"))
 ```
 
 Decode values from `Any`:
 
 ```swift
-let user = try KeyValuDecoder().decode(User.self, from: ["id": 99, "name": "Herbert"])
-
 let food = try KeyValuDecoder().decode(Food.self, from: "fish")
+
+let meals = try KeyValuDecoder().decode([String].self, from: ["fish", "chips"])
+
+let user = try KeyValuDecoder().decode(User.self, from: ["id": 1, "name": "Herbert"])
 ```
+
+[`DecodingError`](https://developer.apple.com/documentation/swift/decodingerror) is thrown when decoding fails. [`Context`](https://developer.apple.com/documentation/swift/decodingerror/context) will include a keyPath to the failed property.
+
+```swift
+// throws DecodingError.typeMismatch 'Expected String at SELF[1], found Int'
+let meals = try KeyValuDecoder().decode([String].self, from: ["fish", 1])
+
+// throws DecodingError.valueNotFound 'Expected String at SELF[1].name, found nil'
+let user = try KeyValuDecoder().decode(User.self, from: [["id": 1, "name": "Herbert"], ["id:" 2])
+```
+
 ## UserDefaults
-Store and retrieve any `Codable` type within UserDefaults:
+Encode and decode `Codable` types with UserDefaults:
 
 ```swift
 try UserDefaults.standard.encode(
@@ -81,19 +95,4 @@ let owner = try UserDefaults.standard.decode(Person.self, forKey: "owner")
 let url = try UserDefaults.standard.decode(URL.self, forKey: "url") 
 
 let duration = try UserDefaults.standard.decode(Duration.self, forKey: "duration")
-```
-
-[`DecodingError`](https://developer.apple.com/documentation/swift/decodingerror) is thrown when decoding fails. [`Context`](https://developer.apple.com/documentation/swift/decodingerror/context) will include a keyPath to the failed property.
-
-```swift
-UserDefaults.standard.set(
-  [
-      ["id": 99, "name": "Herbert"],
-      ["id": 100]
-  ],
-  forKey: "users"
-)
-
-// throws DecodingError.valueNotFound 'Expected String at SELF[1].name, found nil'
-let users = try UserDefaults.standard.decode([User].self, forKey: "users") 
 ```
