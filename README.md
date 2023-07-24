@@ -23,7 +23,7 @@ let any = try KeyValueEncoder().encode(Food(rawValue: "fish"))
 let any = try KeyValueEncoder().encode(["fish", "chips"])
 ```
 
-Structs and classes are encoded to a `[String: Any]`
+Structs and classes are encoded to `[String: Any]`:
 
 ```swift
 struct User: Codable {
