@@ -645,6 +645,14 @@ final class KeyValueEncodedTests: XCTestCase {
         )
     }
 
+    func testEncoder_Encodes_Dates() {
+        let date = Date.now
+        XCTAssertEqual(
+            try KeyValueEncoder().encode(date) as? Date,
+            date
+        )
+    }
+
     func testJSONCompatibleEncoder() throws {
         let keyValueAny = try KeyValueEncoder.makeJSONCompatible().encode([1, 2, Int?.none, 4])
         XCTAssertEqual(

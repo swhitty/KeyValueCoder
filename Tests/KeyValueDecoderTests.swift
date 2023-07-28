@@ -738,6 +738,11 @@ final class KeyValueDecoderTests: XCTestCase {
             try KeyValueDecoder.makePlistCompatible().decode([Int?].self, from: plistAny),
             [1, 2, Int?.none, 4]
         )
+
+        XCTAssertEqual(
+            try KeyValueDecoder.makePlistCompatible().decode(String?.self, from: "$null"),
+            nil
+        )
     }
 
     func testJSONCompatibleDecoder() throws {

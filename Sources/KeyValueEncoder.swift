@@ -107,12 +107,12 @@ extension KeyValueEncoder {
 
 extension KeyValueEncoder.NilEncodingStrategy {
 
-    func isNull(_ value: Any?) -> Bool {
+    public func isNull(_ value: Any?) -> Bool {
         guard let value else { return true }
         return isNull(value)
     }
 
-    func isNull(_ value: Any) -> Bool {
+    public func isNull(_ value: Any) -> Bool {
         switch self {
         case .removed:
             return Self.isOptionalNone(value)
@@ -187,8 +187,11 @@ private extension KeyValueEncoder {
         }
 
         func encodeToValue<T>(_ value: T) throws -> EncodedValue where T: Encodable {
-            try value.encode(to: self)
-            return try getEncodedValue()
+            guard let encoded = EncodedValue(value) else {
+                try value.encode(to: self)
+                return try getEncodedValue()
+            }
+            return encoded
         }
     }
 }
