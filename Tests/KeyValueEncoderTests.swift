@@ -646,7 +646,7 @@ final class KeyValueEncodedTests: XCTestCase {
     }
 
     func testEncoder_Encodes_Dates() {
-        let date = Date.now
+        let date = Date()
         XCTAssertEqual(
             try KeyValueEncoder().encode(date) as? Date,
             date
