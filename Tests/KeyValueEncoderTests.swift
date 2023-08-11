@@ -54,6 +54,7 @@ final class KeyValueEncodedTests: XCTestCase {
     }
 
     func testSingleContainer_Encodes_Duration() throws {
+        guard #available(iOS 16.0, macOS 13.0, *) else { return }
         XCTAssertEqual(
             try KeyValueEncoder.encodeSingleValue {
                 try $0.encode(Duration.nanoseconds(1))

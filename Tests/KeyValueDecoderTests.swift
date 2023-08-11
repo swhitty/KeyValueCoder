@@ -273,7 +273,7 @@ final class KeyValueDecoderTests: XCTestCase {
         )
 
         XCTAssertThrowsError(
-            try KeyValueDecoder.decode(URL.self, from: "invalid url")
+            try KeyValueDecoder.decode(URL.self, from: "")
         )
     }
 
