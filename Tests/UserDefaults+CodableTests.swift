@@ -176,6 +176,153 @@ final class UserDefaultsCodableTests: XCTestCase {
             )
         )
     }
+
+    func testDecodes_String() {
+        let defaults = UserDefaults.makeMock()
+
+        defaults.set("YES", forKey: "flag")
+        XCTAssertEqual(
+            defaults.string(forKey: "flag"),
+            "YES"
+        )
+        XCTAssertEqual(
+            try defaults.decode(String.self, forKey: "flag"),
+            "YES"
+        )
+
+        #if canImport(Darwin)
+        defaults.set(1, forKey: "flag")
+        XCTAssertEqual(
+            defaults.string(forKey: "flag"),
+            "1"
+        )
+        XCTAssertEqual(
+            try defaults.decode(String.self, forKey: "flag"),
+            "1"
+        )
+        #endif
+    }
+
+    func testDecodes_Bool() {
+        let defaults = UserDefaults.makeMock()
+
+        defaults.set("YES", forKey: "flag")
+        XCTAssertTrue(defaults.bool(forKey: "flag"))
+        XCTAssertEqual(
+            try defaults.decode(Bool.self, forKey: "flag"),
+            true
+        )
+
+        defaults.set("NO", forKey: "flag")
+        XCTAssertFalse(defaults.bool(forKey: "flag"))
+        XCTAssertEqual(
+            try defaults.decode(Bool.self, forKey: "flag"),
+            false
+        )
+
+        defaults.set("other", forKey: "flag")
+        XCTAssertFalse(defaults.bool(forKey: "flag"))
+        XCTAssertEqual(
+            try defaults.decode(Bool.self, forKey: "flag"),
+            false
+        )
+    }
+
+    func testDecodes_Integer() {
+        let defaults = UserDefaults.makeMock()
+
+        defaults.set(1, forKey: "flag")
+        XCTAssertEqual(
+            defaults.integer(forKey: "flag"),
+            1
+        )
+        XCTAssertEqual(
+            try defaults.decode(Int.self, forKey: "flag"),
+            1
+        )
+
+        defaults.set("2", forKey: "flag")
+        XCTAssertEqual(
+            defaults.integer(forKey: "flag"),
+            2
+        )
+        XCTAssertEqual(
+            try defaults.decode(Int.self, forKey: "flag"),
+            2
+        )
+    }
+
+    func testDecodes_Double() {
+        let defaults = UserDefaults.makeMock()
+
+        defaults.set(Double(1.5), forKey: "flag")
+        XCTAssertEqual(
+            defaults.double(forKey: "flag"),
+            1.5
+        )
+        XCTAssertEqual(
+            try defaults.decode(Double.self, forKey: "flag"),
+            1.5
+        )
+
+        defaults.set("2.5", forKey: "flag")
+        XCTAssertEqual(
+            defaults.double(forKey: "flag"),
+            2.5
+        )
+        XCTAssertEqual(
+            try defaults.decode(Double.self, forKey: "flag"),
+            2.5
+        )
+    }
+
+    func testDecodes_Float() {
+        let defaults = UserDefaults.makeMock()
+
+        defaults.set(Float(1.5), forKey: "flag")
+        XCTAssertEqual(
+            defaults.float(forKey: "flag"),
+            1.5
+        )
+        XCTAssertEqual(
+            try defaults.decode(Float.self, forKey: "flag"),
+            1.5
+        )
+
+        defaults.set("2.5", forKey: "flag")
+        XCTAssertEqual(
+            defaults.float(forKey: "flag"),
+            2.5
+        )
+        XCTAssertEqual(
+            try defaults.decode(Float.self, forKey: "flag"),
+            2.5
+        )
+    }
+
+    func testDecodes_URL() {
+        let defaults = UserDefaults.makeMock()
+
+        defaults.set(URL(fileURLWithPath: "/fish"), forKey: "flag")
+        XCTAssertEqual(
+            defaults.url(forKey: "flag"),
+            URL(fileURLWithPath: "/fish")
+        )
+        XCTAssertEqual(
+            try defaults.decode(URL.self, forKey: "flag"),
+            URL(fileURLWithPath: "/fish")
+        )
+
+        defaults.set("/chips", forKey: "flag")
+        XCTAssertEqual(
+            defaults.url(forKey: "flag"),
+            URL(fileURLWithPath: "/chips")
+        )
+        XCTAssertEqual(
+            try defaults.decode(URL.self, forKey: "flag"),
+            URL(fileURLWithPath: "/chips")
+        )
+    }
 }
 
 private extension UserDefaults {
