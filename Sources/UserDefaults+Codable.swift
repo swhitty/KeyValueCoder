@@ -45,6 +45,6 @@ public extension UserDefaults {
 
     func decode<T: Decodable>(_ type: T.Type = T.self, forKey key: String) throws -> T? {
         guard let storage = object(forKey: key) else { return nil }
-        return try KeyValueDecoder.makePlistCompatible().decode(type, from: storage)
+        return try KeyValueDecoder.makeUserDefaultsCompatible().decode(type, from: storage)
     }
 }

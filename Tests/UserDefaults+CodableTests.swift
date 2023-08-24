@@ -176,6 +176,29 @@ final class UserDefaultsCodableTests: XCTestCase {
             )
         )
     }
+
+    func testDecodes_BoolStrings() {
+        let defaults = UserDefaults.makeMock()
+
+        defaults.set("YES", forKey: "flag")
+        XCTAssertTrue(defaults.bool(forKey: "flag"))
+        XCTAssertEqual(
+            try defaults.decode(Bool.self, forKey: "flag"),
+            true
+        )
+
+        defaults.set("NO", forKey: "flag")
+        XCTAssertFalse(defaults.bool(forKey: "flag"))
+        XCTAssertEqual(
+            try defaults.decode(Bool.self, forKey: "flag"),
+            false
+        )
+
+        defaults.set("other", forKey: "flag")
+        XCTAssertThrowsError(
+            try defaults.decode(Bool.self, forKey: "flag")
+        )
+    }
 }
 
 private extension UserDefaults {

@@ -46,6 +46,9 @@ public final class KeyValueDecoder {
         self.userInfo = [:]
     }
 
+    /// Decoding options.
+    var options: Options = []
+
     ///
     /// Decodes any loosely typed key value  into a `Decodable` type.
     /// - Parameters:
@@ -56,7 +59,13 @@ public final class KeyValueDecoder {
     ///
     /// - Throws: `DecodingError` if a value cannot be decoded. The context will contain a keyPath of the failed property.
     public func decode<T: Decodable>(_ type: T.Type = T.self, from value: Any) throws -> T {
-        let container = SingleContainer(value: value, codingPath: [], userInfo: userInfo, nilDecodingStrategy: nilDecodingStrategy)
+        let container = SingleContainer(
+            value: value,
+            codingPath: [],
+            userInfo: userInfo,
+            options: options,
+            nilDecodingStrategy: nilDecodingStrategy
+        )
         return try container.decode(type)
     }
 
@@ -70,6 +79,23 @@ extension KeyValueDecoder {
         let decoder = KeyValueDecoder()
         decoder.nilDecodingStrategy = .stringNull
         return decoder
+    }
+
+    static func makeUserDefaultsCompatible() -> KeyValueDecoder {
+        let decoder = makePlistCompatible()
+        decoder.options = .acceptsBoolStrings
+        return decoder
+    }
+
+    struct Options: OptionSet, Sendable {
+        var rawValue: UInt8
+
+        init(rawValue: UInt8) {
+            self.rawValue = rawValue
+        }
+
+        /// Accepts "YES" and "NO" strings when decoding `Bool` values
+        static let acceptsBoolStrings = Options(rawValue: 1 << 0)
     }
 }
 
@@ -111,14 +137,20 @@ private extension KeyValueDecoder {
 
         let codingPath: [CodingKey]
         let userInfo: [CodingUserInfoKey: Any]
+        let options: Options
         let nilDecodingStrategy: NilDecodingStrategy
 
         private var value: Any
 
-        init(value: Any, codingPath: [CodingKey], userInfo: [CodingUserInfoKey: Any], nilDecodingStrategy: NilDecodingStrategy) {
+        init(value: Any,
+             codingPath: [CodingKey],
+             userInfo: [CodingUserInfoKey: Any],
+             options: Options = [],
+             nilDecodingStrategy: NilDecodingStrategy) {
             self.value = value
             self.codingPath = codingPath
             self.userInfo = userInfo
+            self.options = options
             self.nilDecodingStrategy = nilDecodingStrategy
         }
 
@@ -166,7 +198,13 @@ private extension KeyValueDecoder {
         }
 
         func decode(_ type: Bool.Type) throws -> Bool {
-            try getValue()
+            if options.contains(.acceptsBoolStrings),
+               let string = value as? String,
+               (string == "YES" || string == "NO") {
+                return string == "YES"
+            } else {
+                return try getValue()
+            }
         }
 
         func decode(_ type: String.Type) throws -> String {
