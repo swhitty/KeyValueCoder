@@ -31,6 +31,7 @@
 
 import Foundation
 
+#if !os(WASI)
 public extension UserDefaults {
 
     func encode<T: Encodable>(_ value: T, forKey key: String) throws {
@@ -56,3 +57,4 @@ public extension UserDefaults {
         }
     }
 }
+#endif

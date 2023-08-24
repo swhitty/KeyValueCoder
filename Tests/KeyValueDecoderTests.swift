@@ -732,6 +732,7 @@ final class KeyValueDecoderTests: XCTestCase {
         }
     }
 
+    #if !os(WASI)
     func testPlistCompatibleDecoder() throws {
         let plistAny = try PropertyListEncoder.encodeAny([1, 2, Int?.none, 4])
         XCTAssertEqual(
@@ -752,6 +753,7 @@ final class KeyValueDecoderTests: XCTestCase {
             [1, 2, Int?.none, 4]
         )
     }
+    #endif
 }
 
 func AssertThrowsDecodingError<T>(_ expression: @autoclosure () throws -> T,
@@ -890,6 +892,7 @@ struct SomeTypes: Codable, Equatable {
     var tString: String?
 }
 
+#if !os(WASI)
 private extension PropertyListEncoder {
     static func encodeAny<T: Encodable>(_ value: T) throws -> Any {
         let data = try PropertyListEncoder().encode(value)
@@ -903,3 +906,4 @@ private extension JSONEncoder {
         return try JSONSerialization.jsonObject(with: data, options: [])
     }
 }
+#endif
