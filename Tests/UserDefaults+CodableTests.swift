@@ -34,6 +34,7 @@
 import Foundation
 import XCTest
 
+#if !os(WASI)
 final class UserDefaultsCodableTests: XCTestCase {
 
     func testEncodes_Single() {
@@ -331,3 +332,4 @@ private extension UserDefaults {
         return UserDefaults(suiteName: "mock")!
     }
 }
+#endif

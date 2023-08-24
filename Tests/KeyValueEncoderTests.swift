@@ -638,6 +638,7 @@ final class KeyValueEncodedTests: XCTestCase {
         )
     }
 
+    #if !os(WASI)
     func testPlistCompatibleEncoder() throws {
         let keyValueAny = try KeyValueEncoder.makePlistCompatible().encode([1, 2, Int?.none, 4])
         XCTAssertEqual(
@@ -645,6 +646,7 @@ final class KeyValueEncodedTests: XCTestCase {
             [1, 2, Int?.none, 4]
         )
     }
+    #endif
 
     func testEncoder_Encodes_Dates() {
         let date = Date()
@@ -764,12 +766,14 @@ extension KeyValueEncoder.EncodedValue {
     }
 }
 
+#if !os(WASI)
 private extension PropertyListDecoder {
     static func decodeAny<T: Decodable>(_ type: T.Type, from value: Any?) throws -> T {
         let data = try PropertyListSerialization.data(fromPropertyList: value as Any, format: .xml, options: 0)
         return try PropertyListDecoder().decode(type, from: data)
     }
 }
+#endif
 
 private extension JSONDecoder {
     static func decodeAny<T: Decodable>(_ type: T.Type, from value: Any?) throws -> T {
