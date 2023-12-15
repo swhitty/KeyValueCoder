@@ -668,7 +668,7 @@ final class KeyValueEncodedTests: XCTestCase {
 private extension KeyValueEncoder {
 
     static func encodeSingleValue(nilEncodingStrategy: NilEncodingStrategy = .default,
-                                  with closure: (inout SingleValueEncodingContainer) throws -> Void) throws -> EncodedValue {
+                                  with closure: (inout any SingleValueEncodingContainer) throws -> Void) throws -> EncodedValue {
         let encoder = KeyValueEncoder()
         encoder.nilEncodingStrategy = nilEncodingStrategy
         return try encoder.encodeValue {
@@ -677,7 +677,7 @@ private extension KeyValueEncoder {
         }
     }
 
-    static func encodeUnkeyedValue(with closure: (inout UnkeyedEncodingContainer) throws -> Void) throws -> EncodedValue {
+    static func encodeUnkeyedValue(with closure: (inout any UnkeyedEncodingContainer) throws -> Void) throws -> EncodedValue {
         try KeyValueEncoder().encodeValue {
             var container = $0.unkeyedContainer()
             try closure(&container)
@@ -695,7 +695,7 @@ private extension KeyValueEncoder {
         }
     }
 
-    func encodeValue(with closure: (Encoder) throws -> Void) throws -> EncodedValue {
+    func encodeValue(with closure: (any Encoder) throws -> Void) throws -> EncodedValue {
         try withoutActuallyEscaping(closure) {
             try self.encodeValue(StubEncoder(closure: $0))
         }
@@ -709,9 +709,9 @@ private extension KeyValueEncoder {
 }
 
 private struct StubEncoder: Encodable {
-    var closure: (Encoder) throws -> Void
+    var closure: (any Encoder) throws -> Void
 
-    func encode(to encoder: Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
         try closure(encoder)
     }
 }
@@ -783,11 +783,11 @@ private extension JSONDecoder {
 }
 
 private struct Empty: Encodable {
-    func encode(to encoder: Encoder) throws { }
+    func encode(to encoder: any Encoder) throws { }
 }
 
 private struct Null: Encodable {
-    func encode(to encoder: Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
         var container = encoder.singleValueContainer()
         try container.encodeNil()
     }

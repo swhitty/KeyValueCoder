@@ -145,11 +145,11 @@ private extension KeyValueEncoder {
 
     final class Encoder: Swift.Encoder {
 
-        let codingPath: [CodingKey]
+        let codingPath: [any CodingKey]
         let userInfo: [CodingUserInfoKey: Any]
         let nilEncodingStrategy: NilEncodingStrategy
 
-        init(codingPath: [CodingKey] = [], userInfo: [CodingUserInfoKey: Any], nilEncodingStrategy: NilEncodingStrategy) {
+        init(codingPath: [any CodingKey] = [], userInfo: [CodingUserInfoKey: Any], nilEncodingStrategy: NilEncodingStrategy) {
             self.codingPath = codingPath
             self.userInfo = userInfo
             self.nilEncodingStrategy = nilEncodingStrategy
@@ -174,13 +174,13 @@ private extension KeyValueEncoder {
             return KeyedEncodingContainer(keyed)
         }
 
-        func unkeyedContainer() -> UnkeyedEncodingContainer {
+        func unkeyedContainer() -> any UnkeyedEncodingContainer {
             let unkeyed = UnkeyedContainer(codingPath: codingPath, userInfo: userInfo, nilEncodingStrategy: nilEncodingStrategy)
             container = .provider(unkeyed.getEncodedValue)
             return unkeyed
         }
 
-        func singleValueContainer() -> SingleValueEncodingContainer {
+        func singleValueContainer() -> any SingleValueEncodingContainer {
             let single = SingleContainer(codingPath: codingPath, userInfo: userInfo, nilEncodingStrategy: nilEncodingStrategy)
             container = .provider(single.getEncodedValue)
             return single
@@ -201,11 +201,11 @@ private extension KeyValueEncoder {
     final class KeyedContainer<K: CodingKey>: KeyedEncodingContainerProtocol {
         typealias Key = K
 
-        let codingPath: [CodingKey]
+        let codingPath: [any CodingKey]
         private let userInfo: [CodingUserInfoKey: Any]
         private let nilEncodingStrategy: NilEncodingStrategy
 
-        init(codingPath: [CodingKey], userInfo: [CodingUserInfoKey: Any], nilEncodingStrategy: NilEncodingStrategy) {
+        init(codingPath: [any CodingKey], userInfo: [CodingUserInfoKey: Any], nilEncodingStrategy: NilEncodingStrategy) {
             self.codingPath = codingPath
             self.storage = [:]
             self.userInfo = userInfo
@@ -307,18 +307,18 @@ private extension KeyValueEncoder {
             return KeyedEncodingContainer(keyed)
         }
 
-        func nestedUnkeyedContainer(forKey key: K) -> UnkeyedEncodingContainer {
+        func nestedUnkeyedContainer(forKey key: K) -> any UnkeyedEncodingContainer {
             let path = codingPath.appending(key: key)
             let unkeyed = UnkeyedContainer(codingPath: path, userInfo: userInfo, nilEncodingStrategy: nilEncodingStrategy)
             storage[key.stringValue] = .provider(unkeyed.getEncodedValue)
             return unkeyed
         }
 
-        func superEncoder() -> Swift.Encoder {
+        func superEncoder() -> any Swift.Encoder {
             return superEncoder(forKey: Key(stringValue: "super")!)
         }
 
-        func superEncoder(forKey key: Key) -> Swift.Encoder {
+        func superEncoder(forKey key: Key) -> any Swift.Encoder {
             let path = codingPath.appending(key: key)
             let encoder = Encoder(codingPath: path, userInfo: userInfo, nilEncodingStrategy: nilEncodingStrategy)
             storage[key.stringValue] = .provider(encoder.getEncodedValue)
@@ -328,11 +328,11 @@ private extension KeyValueEncoder {
 
     final class UnkeyedContainer: Swift.UnkeyedEncodingContainer {
 
-        let codingPath: [CodingKey]
+        let codingPath: [any CodingKey]
         private let userInfo: [CodingUserInfoKey: Any]
         private let nilEncodingStrategy: NilEncodingStrategy
 
-        init(codingPath: [CodingKey], userInfo: [CodingUserInfoKey: Any], nilEncodingStrategy: NilEncodingStrategy) {
+        init(codingPath: [any CodingKey], userInfo: [CodingUserInfoKey: Any], nilEncodingStrategy: NilEncodingStrategy) {
             self.codingPath = codingPath
             self.userInfo = userInfo
             self.nilEncodingStrategy = nilEncodingStrategy
@@ -437,14 +437,14 @@ private extension KeyValueEncoder {
             return KeyedEncodingContainer(keyed)
         }
 
-        func nestedUnkeyedContainer() -> UnkeyedEncodingContainer {
+        func nestedUnkeyedContainer() -> any UnkeyedEncodingContainer {
             let path = codingPath.appending(index: count)
             let unkeyed = UnkeyedContainer(codingPath: path, userInfo: userInfo, nilEncodingStrategy: nilEncodingStrategy)
             storage.append(.provider(unkeyed.getEncodedValue))
             return unkeyed
         }
 
-        func superEncoder() -> Swift.Encoder {
+        func superEncoder() -> any Swift.Encoder {
             let path = codingPath.appending(index: count)
             let encoder = Encoder(codingPath: path, userInfo: userInfo, nilEncodingStrategy: nilEncodingStrategy)
             storage.append(.provider(encoder.getEncodedValue))
@@ -454,11 +454,11 @@ private extension KeyValueEncoder {
 
     final class SingleContainer: SingleValueEncodingContainer {
 
-        let codingPath: [CodingKey]
+        let codingPath: [any CodingKey]
         private let userInfo: [CodingUserInfoKey: Any]
         private let nilEncodingStrategy: NilEncodingStrategy
 
-        init(codingPath: [CodingKey], userInfo: [CodingUserInfoKey: Any], nilEncodingStrategy: NilEncodingStrategy) {
+        init(codingPath: [any CodingKey], userInfo: [CodingUserInfoKey: Any], nilEncodingStrategy: NilEncodingStrategy) {
             self.codingPath = codingPath
             self.userInfo = userInfo
             self.nilEncodingStrategy = nilEncodingStrategy
@@ -547,21 +547,21 @@ private extension KeyValueEncoder {
     }
 }
 
-extension Array where Element == CodingKey {
+extension Array where Element == any CodingKey {
 
-    func appending(key codingKey: CodingKey) -> [CodingKey] {
+    func appending(key codingKey: any CodingKey) -> [any CodingKey] {
         var path = self
         path.append(codingKey)
         return path
     }
 
-    func appending(index: Int) -> [CodingKey] {
+    func appending(index: Int) -> [any CodingKey] {
         var path = self
         path.append(AnyCodingKey(intValue: index))
         return path
     }
 
-    func makeKeyPath(appending key: CodingKey? = nil) -> String {
+    func makeKeyPath(appending key: (any CodingKey)? = nil) -> String {
         var path = map(\.keyPath)
         if let key = key {
             path.append(key.keyPath)

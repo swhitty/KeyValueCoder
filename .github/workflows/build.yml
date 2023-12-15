@@ -6,10 +6,10 @@ on:
   workflow_dispatch:
 
 jobs:
-  xcode_14_3_1:
+  xcode_15_0_1:
     runs-on: macos-13
     env:
-      DEVELOPER_DIR: /Applications/Xcode_14.3.1.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_15.0.1.app/Contents/Developer
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -26,10 +26,10 @@ jobs:
         with:
           files: ./coverage_report.lcov
 
-  xcode_15:
+  xcode_14_3_1:
     runs-on: macos-13
     env:
-      DEVELOPER_DIR: /Applications/Xcode_15.0.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_14.3.1.app/Contents/Developer
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -40,9 +40,9 @@ jobs:
       - name: Test
         run: swift test --skip-build
 
-  linux_swift_5_9:
+  linux_swift_5_9_2:
     runs-on: ubuntu-latest
-    container: swift:5.9
+    container: swift:5.9.2
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -56,19 +56,6 @@ jobs:
   linux_swift_5_8:
     runs-on: ubuntu-latest
     container: swift:5.8
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Version
-        run: swift --version
-      - name: Build
-        run: swift build --build-tests
-      - name: Test
-        run: swift test --skip-build
-
-  linux_swift_5_7:
-    runs-on: ubuntu-latest
-    container: swift:5.7
     steps:
       - name: Checkout
         uses: actions/checkout@v3

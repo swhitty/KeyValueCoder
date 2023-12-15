@@ -78,7 +78,7 @@ private extension KeyValueDecoder {
     struct Decoder: Swift.Decoder {
 
         private let container: SingleContainer
-        let codingPath: [CodingKey]
+        let codingPath: [any CodingKey]
         let userInfo: [CodingUserInfoKey: Any]
 
         init(container: SingleContainer) {
@@ -97,25 +97,25 @@ private extension KeyValueDecoder {
             return KeyedDecodingContainer(keyed)
         }
 
-        func unkeyedContainer() throws -> UnkeyedDecodingContainer {
+        func unkeyedContainer() throws -> any UnkeyedDecodingContainer {
             let storage = try container.decode([Any].self)
             return UnkeyedContainer(codingPath: codingPath, storage: storage, userInfo: userInfo, nilDecodingStrategy: container.nilDecodingStrategy)
         }
 
-        func singleValueContainer() throws -> SingleValueDecodingContainer {
+        func singleValueContainer() throws -> any SingleValueDecodingContainer {
             container
         }
     }
 
     struct SingleContainer: SingleValueDecodingContainer {
 
-        let codingPath: [CodingKey]
+        let codingPath: [any CodingKey]
         let userInfo: [CodingUserInfoKey: Any]
         let nilDecodingStrategy: NilDecodingStrategy
 
         private var value: Any
 
-        init(value: Any, codingPath: [CodingKey], userInfo: [CodingUserInfoKey: Any], nilDecodingStrategy: NilDecodingStrategy) {
+        init(value: Any, codingPath: [any CodingKey], userInfo: [CodingUserInfoKey: Any], nilDecodingStrategy: NilDecodingStrategy) {
             self.value = value
             self.codingPath = codingPath
             self.userInfo = userInfo
@@ -297,11 +297,11 @@ private extension KeyValueDecoder {
     struct KeyedContainer<Key: CodingKey>: KeyedDecodingContainerProtocol {
 
         let storage: [String: Any]
-        let codingPath: [CodingKey]
+        let codingPath: [any CodingKey]
         private let userInfo: [CodingUserInfoKey: Any]
         private let nilDecodingStrategy: NilDecodingStrategy
 
-        init(codingPath: [CodingKey], storage: [String: Any], userInfo: [CodingUserInfoKey: Any], nilDecodingStrategy: NilDecodingStrategy) {
+        init(codingPath: [any CodingKey], storage: [String: Any], userInfo: [CodingUserInfoKey: Any], nilDecodingStrategy: NilDecodingStrategy) {
             self.codingPath = codingPath
             self.storage = storage
             self.userInfo = userInfo
@@ -407,7 +407,7 @@ private extension KeyValueDecoder {
             return KeyedDecodingContainer<NestedKey>(keyed)
         }
 
-        func nestedUnkeyedContainer(forKey key: Key) throws -> UnkeyedDecodingContainer {
+        func nestedUnkeyedContainer(forKey key: Key) throws -> any UnkeyedDecodingContainer {
             let container = try container(for: key)
             return try UnkeyedContainer(
                 codingPath: container.codingPath,
@@ -417,25 +417,25 @@ private extension KeyValueDecoder {
             )
         }
 
-        func superDecoder() throws -> Swift.Decoder {
+        func superDecoder() throws -> any Swift.Decoder {
             let container = SingleContainer(value: storage, codingPath: codingPath, userInfo: userInfo, nilDecodingStrategy: nilDecodingStrategy)
             return Decoder(container: container)
         }
 
-        func superDecoder(forKey key: Key) throws -> Swift.Decoder {
+        func superDecoder(forKey key: Key) throws -> any Swift.Decoder {
             try Decoder(container: container(for: key))
         }
     }
 
     struct UnkeyedContainer: UnkeyedDecodingContainer {
 
-        let codingPath: [CodingKey]
+        let codingPath: [any CodingKey]
 
         let storage: [Any]
         private let userInfo: [CodingUserInfoKey: Any]
         private let nilDecodingStrategy: NilDecodingStrategy
 
-        init(codingPath: [CodingKey], storage: [Any], userInfo: [CodingUserInfoKey: Any], nilDecodingStrategy: NilDecodingStrategy) {
+        init(codingPath: [any CodingKey], storage: [Any], userInfo: [CodingUserInfoKey: Any], nilDecodingStrategy: NilDecodingStrategy) {
             self.codingPath = codingPath
             self.storage = storage
             self.userInfo = userInfo
@@ -541,13 +541,13 @@ private extension KeyValueDecoder {
             return result
         }
 
-        mutating func nestedUnkeyedContainer() throws -> UnkeyedDecodingContainer {
+        mutating func nestedUnkeyedContainer() throws -> any UnkeyedDecodingContainer {
             let result = try Decoder(container: nextContainer()).unkeyedContainer()
             currentIndex = storage.index(after: currentIndex)
             return result
         }
 
-        mutating func superDecoder() -> Swift.Decoder {
+        mutating func superDecoder() -> any Swift.Decoder {
             let container = SingleContainer(value: storage, codingPath: codingPath, userInfo: userInfo, nilDecodingStrategy: nilDecodingStrategy)
             return Decoder(container: container)
         }
