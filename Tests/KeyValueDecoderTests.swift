@@ -809,7 +809,7 @@ private extension KeyValueDecoder {
         return proxy.result!
     }
 
-    static func decodeUnkeyedValue<T>(from value: [Any], with closure: @escaping (inout UnkeyedDecodingContainer) throws -> T) throws -> T {
+    static func decodeUnkeyedValue<T>(from value: [Any], with closure: @escaping (inout any UnkeyedDecodingContainer) throws -> T) throws -> T {
         let proxy = StubDecoder.Proxy { decoder in
             var container = try decoder.unkeyedContainer()
             return try closure(&container)
@@ -835,20 +835,20 @@ private extension CodingUserInfoKey {
 private struct StubDecoder: Decodable {
 
     final class Proxy<T> {
-        private let closure: (Decoder) throws -> T
+        private let closure: (any Decoder) throws -> T
         private(set) var result: T?
 
-        init(_ closure: @escaping (Decoder) throws -> T) {
+        init(_ closure: @escaping (any Decoder) throws -> T) {
             self.closure = closure
         }
 
-        func decode(from decoder: Decoder) throws {
+        func decode(from decoder: any Decoder) throws {
             self.result = try closure(decoder)
         }
     }
 
-    init(from decoder: Decoder) throws {
-        let closure = decoder.userInfo[.decoder] as! (Decoder) throws -> Void
+    init(from decoder: any Decoder) throws {
+        let closure = decoder.userInfo[.decoder] as! (any Decoder) throws -> Void
         try closure(decoder)
     }
 }

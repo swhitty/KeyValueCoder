@@ -15,12 +15,23 @@ let package = Package(
     targets: [
         .target(
             name: "KeyValueCoder",
-            path: "Sources"
+            path: "Sources",
+            swiftSettings: .upcomingFeatures
         ),
         .testTarget(
             name: "KeyValueCoderTests",
             dependencies: ["KeyValueCoder"],
-            path: "Tests"
+            path: "Tests",
+            swiftSettings: .upcomingFeatures
         )
     ]
 )
+
+extension Array where Element == SwiftSetting {
+
+    static var upcomingFeatures: [SwiftSetting] {
+        [
+            .enableUpcomingFeature("ExistentialAny")
+        ]
+    }
+}
