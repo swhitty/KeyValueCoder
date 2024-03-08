@@ -66,13 +66,13 @@ public enum NilCodingStrategy {
     case placeholder(Any, isNull: (Any) -> Bool)
 
     /// `nil` values are substituted with `Optional<Any>.none`. Can be cast to any optional type.
-    public static let `default` = NilCodingStrategy.placeholder(Optional<Any>.none as Any, isNull: isOptionalNone)
+    public static var `default`: NilCodingStrategy { .placeholder(Optional<Any>.none as Any, isNull: isOptionalNone) }
 
     /// `nil` values are substituted with `"$null"` placeholder string. Compatible with `PropertyListEncoder`.
-    public static let stringNull = NilCodingStrategy.placeholder("$null", isNull: { ($0 as? String == "$null") })
+    public static var stringNull: NilCodingStrategy { .placeholder("$null", isNull: { ($0 as? String == "$null") }) }
 
     /// `nil` values are substituted with `"NSNull()"`. Compatible with `JSONSerialization`.
-    public static let nsNull = NilCodingStrategy.placeholder(NSNull(), isNull: { $0 is NSNull })
+    public static var nsNull: NilCodingStrategy { .placeholder(NSNull(), isNull: { $0 is NSNull }) }
 }
 
 extension KeyValueEncoder {
