@@ -31,7 +31,8 @@ extension Array where Element == SwiftSetting {
 
     static var upcomingFeatures: [SwiftSetting] {
         [
-            .enableUpcomingFeature("ExistentialAny")
+            .enableUpcomingFeature("ExistentialAny"),
+            .enableExperimentalFeature("StrictConcurrency")
         ]
     }
 }
