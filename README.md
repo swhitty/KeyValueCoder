@@ -109,7 +109,7 @@ The default strategy `IntDecodingStrategy.exact` ensures the source value is exa
 // [10, 20, -30, 50]
 let values = try KeyValueDecoder().decode([Int8].self, from: [10, 20.0, -30.0, Int64(50)])
 
-// throws DecodingError.typeMismatch because 1000 cannot be exactly repr
+// throws DecodingError.typeMismatch because 1000 cannot be exactly represented by Int8
 _ = try KeyValueDecoder().decode(Int8.self, from: 1000])
 ```
 
