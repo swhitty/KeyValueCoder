@@ -103,6 +103,14 @@ final class KeyValueDecoderTests: XCTestCase {
             try KeyValueDecoder.decode(Int16.self, from: NSNumber(10)),
             10
         )
+        XCTAssertEqual(
+            try KeyValueDecoder.decode(Int16.self, from: 10.0),
+            10
+        )
+        XCTAssertEqual(
+            try KeyValueDecoder.decode(Int16.self, from: NSNumber(10.0)),
+            10
+        )
         XCTAssertThrowsError(
             try KeyValueDecoder.decode(Int8.self, from: Int16.max)
         )
@@ -118,6 +126,12 @@ final class KeyValueDecoderTests: XCTestCase {
         XCTAssertThrowsError(
             try KeyValueDecoder.decode(Int16.self, from: NSNull())
         )
+        XCTAssertThrowsError(
+            try KeyValueDecoder.decode(Int8.self, from: 10.1)
+        )
+        XCTAssertThrowsError(
+            try KeyValueDecoder.decode(Int8.self, from: NSNumber(10.1))
+        )
     }
 
     func testDecodes_UInts() {
@@ -127,6 +141,14 @@ final class KeyValueDecoderTests: XCTestCase {
         )
         XCTAssertEqual(
             try KeyValueDecoder.decode(UInt8.self, from: NSNumber(10)),
+            10
+        )
+        XCTAssertEqual(
+            try KeyValueDecoder.decode(UInt8.self, from: 10.0),
+            10
+        )
+        XCTAssertEqual(
+            try KeyValueDecoder.decode(UInt8.self, from: NSNumber(10.0)),
             10
         )
         XCTAssertThrowsError(
@@ -140,6 +162,12 @@ final class KeyValueDecoderTests: XCTestCase {
         )
         XCTAssertThrowsError(
             try KeyValueDecoder.decode(UInt8.self, from: NSNull())
+        )
+        XCTAssertThrowsError(
+            try KeyValueDecoder.decode(UInt8.self, from: 10.1)
+        )
+        XCTAssertThrowsError(
+            try KeyValueDecoder.decode(UInt8.self, from: NSNumber(10.1))
         )
     }
 
@@ -480,8 +508,8 @@ final class KeyValueDecoderTests: XCTestCase {
 
     func testDecodes_UnkeyedInts() {
         XCTAssertEqual(
-            try KeyValueDecoder.decode([Int].self, from: [-10, 20, 30]),
-            [-10, 20, 30]
+            try KeyValueDecoder.decode([Int].self, from: [-10, 20, 30, 40.0, -50.0]),
+            [-10, 20, 30, 40, -50]
         )
         XCTAssertEqual(
             try KeyValueDecoder.decode([Int8].self, from: [10, -20, 30]),
@@ -610,8 +638,8 @@ final class KeyValueDecoderTests: XCTestCase {
 
     func testDecodes_UnkeyedUInts() {
         XCTAssertEqual(
-            try KeyValueDecoder.decode([UInt].self, from: [10, 20, 30]),
-            [10, 20, 30]
+            try KeyValueDecoder.decode([UInt].self, from: [10, 20, 30, 40.0]),
+            [10, 20, 30, 40]
         )
         XCTAssertEqual(
             try KeyValueDecoder.decode([UInt8].self, from: [10, 20, 30]),

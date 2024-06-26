@@ -155,7 +155,15 @@ private extension KeyValueDecoder {
                     throw DecodingError.typeMismatch(type, context)
                 }
                 return val
-            } else {
+            } else if let double = (value as? NSNumber)?.getDoubleValue() {
+                let val = T(double)
+                guard Double(val) == double else {
+                    let context = DecodingError.Context(codingPath: codingPath, debugDescription: "\(valueDescription) at \(codingPath.makeKeyPath()), cannot be exactly represented by \(type)")
+                    throw DecodingError.typeMismatch(type, context)
+                }
+                return val
+            }
+            else {
                 let context = DecodingError.Context(codingPath: codingPath, debugDescription: "Expected BinaryInteger at \(codingPath.makeKeyPath()), found \(valueDescription)")
                 if decodeNil() {
                     throw DecodingError.valueNotFound(type, context)
