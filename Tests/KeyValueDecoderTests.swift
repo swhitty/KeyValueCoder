@@ -134,6 +134,53 @@ final class KeyValueDecoderTests: XCTestCase {
         )
     }
 
+    func testDecodesRounded_Ints() {
+        let decoder = KeyValueDecoder()
+        decoder.intDecodingStrategy = .rounded(rule: .toNearestOrAwayFromZero)
+
+        XCTAssertEqual(
+            try decoder.decode(Int16.self, from: 10.0),
+            10
+        )
+        XCTAssertEqual(
+            try decoder.decode(Int16.self, from: 10.00001),
+            10
+        )
+        XCTAssertEqual(
+            try decoder.decode(Int16.self, from: 10.1),
+            10
+        )
+        XCTAssertEqual(
+            try decoder.decode(Int16.self, from: 10.5),
+            11
+        )
+        XCTAssertEqual(
+            try decoder.decode(Int16.self, from: -10.5),
+            -11
+        )
+        XCTAssertEqual(
+            try decoder.decode(Int16.self, from: NSNumber(10.5)),
+            11
+        )
+        XCTAssertEqual(
+            try decoder.decode([Int].self, from: [10.1, -20.9, 50.00001]),
+            [10, -21, 50]
+        )
+
+        XCTAssertThrowsError(
+            try KeyValueDecoder.decode(Int8.self, from: Double(Int16.max))
+        )
+        XCTAssertThrowsError(
+            try KeyValueDecoder.decode(Int8.self, from: NSNumber(value: Double(Int16.max)))
+        )
+        XCTAssertThrowsError(
+            try KeyValueDecoder.decode(Int16.self, from: Optional<Double>.none)
+        )
+        XCTAssertThrowsError(
+            try KeyValueDecoder.decode(Int16.self, from: NSNull())
+        )
+    }
+
     func testDecodes_UInts() {
         XCTAssertEqual(
             try KeyValueDecoder.decode(UInt16.self, from: UInt16.max),
@@ -168,6 +215,52 @@ final class KeyValueDecoderTests: XCTestCase {
         )
         XCTAssertThrowsError(
             try KeyValueDecoder.decode(UInt8.self, from: NSNumber(10.1))
+        )
+    }
+
+    func testDecodesRounded_UInts() {
+        let decoder = KeyValueDecoder()
+        decoder.intDecodingStrategy = .rounded(rule: .toNearestOrAwayFromZero)
+
+        XCTAssertEqual(
+            try decoder.decode(UInt16.self, from: 10.0),
+            10
+        )
+        XCTAssertEqual(
+            try decoder.decode(UInt16.self, from: 10.00001),
+            10
+        )
+        XCTAssertEqual(
+            try decoder.decode(UInt16.self, from: 10.1),
+            10
+        )
+        XCTAssertEqual(
+            try decoder.decode(UInt16.self, from: 10.5),
+            11
+        )
+        XCTAssertEqual(
+            try decoder.decode(UInt16.self, from: NSNumber(10.5)),
+            11
+        )
+        XCTAssertEqual(
+            try decoder.decode([UInt].self, from: [10.1, 20.9, 50.00001]),
+            [10, 21, 50]
+        )
+
+        XCTAssertThrowsError(
+            try KeyValueDecoder.decode(UInt8.self, from: Double(Int16.max))
+        )
+        XCTAssertThrowsError(
+            try KeyValueDecoder.decode(UInt8.self, from: NSNumber(value: Double(Int16.max)))
+        )
+        XCTAssertThrowsError(
+            try KeyValueDecoder.decode(UInt16.self, from: Double(-1))
+        )
+        XCTAssertThrowsError(
+            try KeyValueDecoder.decode(UInt16.self, from: Optional<Double>.none)
+        )
+        XCTAssertThrowsError(
+            try KeyValueDecoder.decode(UInt16.self, from: NSNull())
         )
     }
 

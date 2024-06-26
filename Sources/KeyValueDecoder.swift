@@ -41,7 +41,10 @@ public final class KeyValueDecoder {
     /// The strategy to use for decoding `nil`. Defaults to `Optional<Any>.none` which can be decoded to any optional type.
     public var nilDecodingStrategy: NilDecodingStrategy = .default
 
-    /// Initializes `self` with default strategies.
+    /// The strategy to use for decoding BinaryInteger types. Defaults to `.exact` for lossless conversion between types.
+    public var intDecodingStrategy: IntDecodingStrategy = .exact
+
+    /// Initializes `self` with default strategy.
     public init () {
         self.userInfo = [:]
     }
@@ -60,13 +63,21 @@ public final class KeyValueDecoder {
             value: value,
             codingPath: [],
             userInfo: userInfo,
-            nilDecodingStrategy: nilDecodingStrategy
+            strategy: strategy
         )
         return try container.decode(type)
     }
 
     /// Strategy used to decode nil values.
     public typealias NilDecodingStrategy = NilCodingStrategy
+
+    public enum IntDecodingStrategy {
+        /// Decodes all number types with lossless conversion or throws error.
+        case exact
+
+        /// Decodes all floating point numbers using the provided rounding rule.
+        case rounded(rule: FloatingPointRoundingRule)
+    }
 }
 
 extension KeyValueDecoder {
@@ -79,6 +90,18 @@ extension KeyValueDecoder {
 }
 
 private extension KeyValueDecoder {
+
+    struct DecodingStrategy {
+        var optionals: NilDecodingStrategy
+        var integers: IntDecodingStrategy
+    }
+
+    var strategy: DecodingStrategy {
+        DecodingStrategy(
+            optionals: nilDecodingStrategy,
+            integers: intDecodingStrategy
+        )
+    }
 
     struct Decoder: Swift.Decoder {
 
@@ -97,7 +120,7 @@ private extension KeyValueDecoder {
                 codingPath: codingPath,
                 storage: container.decode([String: Any].self),
                 userInfo: userInfo,
-                nilDecodingStrategy: container.nilDecodingStrategy
+                strategy: container.strategy
             )
             return KeyedDecodingContainer(keyed)
         }
@@ -108,7 +131,7 @@ private extension KeyValueDecoder {
                 codingPath: codingPath,
                 storage: storage,
                 userInfo: userInfo,
-                nilDecodingStrategy: container.nilDecodingStrategy
+                strategy: container.strategy
             )
         }
 
@@ -121,7 +144,7 @@ private extension KeyValueDecoder {
 
         let codingPath: [any CodingKey]
         let userInfo: [CodingUserInfoKey: Any]
-        let nilDecodingStrategy: NilDecodingStrategy
+        let strategy: DecodingStrategy
 
         private var value: Any
 
@@ -129,20 +152,20 @@ private extension KeyValueDecoder {
             value: Any,
             codingPath: [any CodingKey],
             userInfo: [CodingUserInfoKey: Any],
-            nilDecodingStrategy: NilDecodingStrategy
+            strategy: DecodingStrategy
         ) {
             self.value = value
             self.codingPath = codingPath
             self.userInfo = userInfo
-            self.nilDecodingStrategy = nilDecodingStrategy
+            self.strategy = strategy
         }
 
         func decodeNil() -> Bool {
-            nilDecodingStrategy.isNull(value)
+            strategy.optionals.isNull(value)
         }
 
         private var valueDescription: String {
-            nilDecodingStrategy.isNull(value) ? "nil" : String(describing: type(of: value))
+            strategy.optionals.isNull(value) ? "nil" : String(describing: type(of: value))
         }
 
         func getValue<T>(of type: T.Type = T.self) throws -> T {
@@ -170,21 +193,31 @@ private extension KeyValueDecoder {
                     throw DecodingError.typeMismatch(type, context)
                 }
                 return val
-            } else if let double = (value as? NSNumber)?.getDoubleValue() {
-                let val = T(double)
-                guard Double(val) == double else {
+            } else if let double = getDoubleValue(from: value, using: strategy.integers) {
+                guard let val = T(exactly: double) else {
                     let context = DecodingError.Context(codingPath: codingPath, debugDescription: "\(valueDescription) at \(codingPath.makeKeyPath()), cannot be exactly represented by \(type)")
                     throw DecodingError.typeMismatch(type, context)
                 }
                 return val
-            }
-            else {
+            } else {
                 let context = DecodingError.Context(codingPath: codingPath, debugDescription: "Expected BinaryInteger at \(codingPath.makeKeyPath()), found \(valueDescription)")
                 if decodeNil() {
                     throw DecodingError.valueNotFound(type, context)
                 } else {
                     throw DecodingError.typeMismatch(type, context)
                 }
+            }
+        }
+
+        func getDoubleValue(from value: Any, using strategy: IntDecodingStrategy) -> Double? {
+            guard let double = (value as? NSNumber)?.getDoubleValue() else {
+                return nil
+            }
+            switch strategy {
+            case .exact:
+                return double
+            case .rounded(rule: let rule):
+                return double.rounded(rule)
             }
         }
 
@@ -322,18 +355,18 @@ private extension KeyValueDecoder {
         let storage: [String: Any]
         let codingPath: [any CodingKey]
         private let userInfo: [CodingUserInfoKey: Any]
-        private let nilDecodingStrategy: NilDecodingStrategy
+        private let strategy: DecodingStrategy
 
         init(
             codingPath: [any CodingKey],
             storage: [String: Any],
             userInfo: [CodingUserInfoKey: Any],
-            nilDecodingStrategy: NilDecodingStrategy
+            strategy: DecodingStrategy
         ) {
             self.codingPath = codingPath
             self.storage = storage
             self.userInfo = userInfo
-            self.nilDecodingStrategy = nilDecodingStrategy
+            self.strategy = strategy
         }
 
         var allKeys: [Key] {
@@ -357,7 +390,7 @@ private extension KeyValueDecoder {
                 value: value,
                 codingPath: path,
                 userInfo: userInfo,
-                nilDecodingStrategy: nilDecodingStrategy
+                strategy: strategy
             )
         }
 
@@ -435,7 +468,7 @@ private extension KeyValueDecoder {
                 codingPath: container.codingPath,
                 storage: container.decode([String: Any].self),
                 userInfo: userInfo,
-                nilDecodingStrategy: nilDecodingStrategy
+                strategy: strategy
             )
             return KeyedDecodingContainer<NestedKey>(keyed)
         }
@@ -446,7 +479,7 @@ private extension KeyValueDecoder {
                 codingPath: container.codingPath,
                 storage: container.decode([Any].self),
                 userInfo: userInfo,
-                nilDecodingStrategy: nilDecodingStrategy
+                strategy: strategy
             )
         }
 
@@ -455,7 +488,7 @@ private extension KeyValueDecoder {
                 value: storage,
                 codingPath: codingPath,
                 userInfo: userInfo,
-                nilDecodingStrategy: nilDecodingStrategy
+                strategy: strategy
             )
             return Decoder(container: container)
         }
@@ -471,18 +504,18 @@ private extension KeyValueDecoder {
 
         let storage: [Any]
         private let userInfo: [CodingUserInfoKey: Any]
-        private let nilDecodingStrategy: NilDecodingStrategy
+        private let strategy: DecodingStrategy
 
         init(
             codingPath: [any CodingKey],
             storage: [Any],
             userInfo: [CodingUserInfoKey: Any],
-            nilDecodingStrategy: NilDecodingStrategy
+            strategy: DecodingStrategy
         ) {
             self.codingPath = codingPath
             self.storage = storage
             self.userInfo = userInfo
-            self.nilDecodingStrategy = nilDecodingStrategy
+            self.strategy = strategy
             self.currentIndex = storage.startIndex
         }
 
@@ -507,7 +540,7 @@ private extension KeyValueDecoder {
                 value: storage[currentIndex],
                 codingPath: path,
                 userInfo: userInfo,
-                nilDecodingStrategy: nilDecodingStrategy
+                strategy: strategy
             )
         }
 
@@ -600,7 +633,7 @@ private extension KeyValueDecoder {
                 value: storage,
                 codingPath: codingPath,
                 userInfo: userInfo,
-                nilDecodingStrategy: nilDecodingStrategy
+                strategy: strategy
             )
             return Decoder(container: container)
         }
