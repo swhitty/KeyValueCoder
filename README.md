@@ -113,7 +113,7 @@ let values = try KeyValueDecoder().decode([Int8].self, from: [10, 20.0, -30.0, I
 _ = try KeyValueDecoder().decode(Int8.self, from: 1000])
 ```
 
-Integers can also be decoded using any [FloatingPointRoundingRule](https://developer.apple.com/documentation/swift/floatingpointroundingrule) by setting the `.rounded(rule:)` strategy:
+Values with a fractional part can also be decoded to integers by rounding with any [FloatingPointRoundingRule](https://developer.apple.com/documentation/swift/floatingpointroundingrule):
 
 ```swift
 let decoder = KeyValueDecoder()
