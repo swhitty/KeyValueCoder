@@ -99,6 +99,30 @@ encoder.nilEncodingStrategy = .removed
 let any = try encoder.encode([1, 2, Int?.none, 3])
 ```
 
+## Int Decoding Strategy
+
+The decoding of [BinaryInteger](https://developer.apple.com/documentation/swift/binaryinteger) types (`Int`, `UInt` etc) can be adjusted via `intDecodingStrategy`.
+
+The default strategy `IntDecodingStrategy.exact` ensures the source value is exactly represented by the decoded type allowing floating point values with no fractional part to be decoded:
+
+```swift
+// [10, 20, -30, 50]
+let values = try KeyValueDecoder().decode([Int8].self, from: [10, 20.0, -30.0, Int64(50)])
+
+// throws DecodingError.typeMismatch because 1000 cannot be exactly repr
+_ = try KeyValueDecoder().decode(Int8.self, from: 1000])
+```
+
+Integers can also be decoded using any [FloatingPointRoundingRule](https://developer.apple.com/documentation/swift/floatingpointroundingrule) by setting the `.rounded(rule:)` strategy:
+
+```swift
+let decoder = KeyValueDecoder()
+decoder.intDecodingStrategy = .rounded(rule: .toNearestOrAwayFromZero)
+
+// [10, -21, 50]
+let values = try decoder.decode([Int].self, from: [10.1, -20.9, 50.00001]),
+```
+
 ## UserDefaults
 Encode and decode [`Codable`](https://developer.apple.com/documentation/swift/codable) types with [`UserDefaults`](https://developer.apple.com/documentation/foundation/userdefaults):
 
