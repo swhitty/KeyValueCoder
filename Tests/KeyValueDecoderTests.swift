@@ -149,7 +149,7 @@ final class KeyValueDecoderTests: XCTestCase {
 
     func testDecodesRounded_Ints() {
         let decoder = KeyValueDecoder()
-        decoder.intDecodingStrategy = .rounded(rule: .toNearestOrAwayFromZero)
+        decoder.intDecodingStrategy = .rounding(rule: .toNearestOrAwayFromZero)
 
         XCTAssertEqual(
             try decoder.decode(Int16.self, from: 10.0),
@@ -247,7 +247,7 @@ final class KeyValueDecoderTests: XCTestCase {
 
     func testDecodesRounded_UInts() {
         let decoder = KeyValueDecoder()
-        decoder.intDecodingStrategy = .rounded(rule: .toNearestOrAwayFromZero)
+        decoder.intDecodingStrategy = .rounding(rule: .toNearestOrAwayFromZero)
 
         XCTAssertEqual(
             try decoder.decode(UInt16.self, from: 10.0),
@@ -900,6 +900,75 @@ final class KeyValueDecoderTests: XCTestCase {
         AssertThrowsDecodingError(try KeyValueDecoder.decode(AllTypes.self, from: ["tArray": [["tString": 0]]] as [String: Any])) { error in
             XCTAssertEqual(error.debugDescription, "Expected String at SELF.tArray[0].tString, found Int")
         }
+    }
+
+    func testInt_ClampsDoubles() {
+        XCTAssertEqual(
+            Int8(from: 1000.0, using: .clamping(roundingRule: nil)),
+            Int8.max
+        )
+        XCTAssertEqual(
+            Int8(from: -1000.0, using: .clamping(roundingRule: nil)),
+            Int8.min
+        )
+        XCTAssertEqual(
+            Int8(from: 100.0, using: .clamping(roundingRule: nil)),
+            100
+        )
+        XCTAssertEqual(
+            Int8(from: 100.5, using: .clamping(roundingRule: .toNearestOrAwayFromZero)),
+            101
+        )
+        XCTAssertEqual(
+            Int8(from: Double.infinity, using: .clamping(roundingRule: .toNearestOrAwayFromZero)),
+            Int8.max
+        )
+        XCTAssertEqual(
+            Int8(from: -Double.infinity, using: .clamping(roundingRule: .toNearestOrAwayFromZero)),
+            Int8.min
+        )
+        XCTAssertNil(
+            Int8(from: Double.nan, using: .clamping(roundingRule: nil))
+        )
+    }
+
+    func testUInt_ClampsDoubles() {
+        XCTAssertEqual(
+            UInt8(from: 1000.0, using: .clamping(roundingRule: nil)),
+            UInt8.max
+        )
+        XCTAssertEqual(
+            UInt8(from: -1000.0, using: .clamping(roundingRule: nil)),
+            UInt8.min
+        )
+        XCTAssertEqual(
+            UInt8(from: 100.0, using: .clamping(roundingRule: nil)),
+            100
+        )
+        XCTAssertEqual(
+            UInt8(from: 100.5, using: .clamping(roundingRule: .toNearestOrAwayFromZero)),
+            101
+        )
+        XCTAssertEqual(
+            UInt8(from: Double.infinity, using: .clamping(roundingRule: .toNearestOrAwayFromZero)),
+            UInt8.max
+        )
+        XCTAssertEqual(
+            UInt8(from: -Double.infinity, using: .clamping(roundingRule: .toNearestOrAwayFromZero)),
+            UInt8.min
+        )
+        XCTAssertNil(
+            UInt8(from: Double.nan, using: .clamping(roundingRule: nil))
+        )
+
+        // [10, , 20.5, 1000, -Double.infinity]
+        let decoder = KeyValueDecoder()
+        decoder.intDecodingStrategy = .clamping(roundingRule: .toNearestOrAwayFromZero)
+        XCTAssertEqual(
+        try decoder.decode([Int8].self, from: [10, 20.5, 1000, -Double.infinity]),
+        [10, 21, 127, -128]
+        )
+
     }
 
     #if !os(WASI)

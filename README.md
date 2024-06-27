@@ -101,7 +101,7 @@ let any = try encoder.encode([1, 2, Int?.none, 3])
 
 ## Int Decoding Strategy
 
-The decoding of [BinaryInteger](https://developer.apple.com/documentation/swift/binaryinteger) types (`Int`, `UInt` etc) can be adjusted via `intDecodingStrategy`.
+The decoding of [`BinaryInteger`](https://developer.apple.com/documentation/swift/binaryinteger) types (`Int`, `UInt` etc) can be adjusted via `intDecodingStrategy`.
 
 The default strategy `IntDecodingStrategy.exact` ensures the source value is exactly represented by the decoded type allowing floating point values with no fractional part to be decoded:
 
@@ -113,14 +113,24 @@ let values = try KeyValueDecoder().decode([Int8].self, from: [10, 20.0, -30.0, I
 _ = try KeyValueDecoder().decode(Int8.self, from: 1000])
 ```
 
-Values with a fractional part can also be decoded to integers by rounding with any [FloatingPointRoundingRule](https://developer.apple.com/documentation/swift/floatingpointroundingrule):
+Values with a fractional part can also be decoded to integers by rounding with any [`FloatingPointRoundingRule`](https://developer.apple.com/documentation/swift/floatingpointroundingrule):
 
 ```swift
 let decoder = KeyValueDecoder()
-decoder.intDecodingStrategy = .rounded(rule: .toNearestOrAwayFromZero)
+decoder.intDecodingStrategy = .rounding(rule: .toNearestOrAwayFromZero)
 
 // [10, -21, 50]
 let values = try decoder.decode([Int].self, from: [10.1, -20.9, 50.00001]),
+```
+
+Values can also be clamped to the representable range:
+
+```swift
+let decoder = KeyValueDecoder()
+decoder.intDecodingStrategy = .clamping(roundingRule: .toNearestOrAwayFromZero)
+
+// [10, 21, 127, -128]
+let values = try decoder.decode([Int8].self, from: [10, 20.5, 1000, -Double.infinity])
 ```
 
 ## UserDefaults
