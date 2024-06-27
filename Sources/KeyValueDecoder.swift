@@ -76,7 +76,11 @@ public final class KeyValueDecoder {
         case exact
 
         /// Decodes all floating point numbers using the provided rounding rule.
-        case rounded(rule: FloatingPointRoundingRule)
+        case rounding(rule: FloatingPointRoundingRule)
+
+        /// Clamps all integers to their min / max.
+        /// Floating point conversions are also clamped, rounded when a rule is provided
+        case clamping(roundingRule: FloatingPointRoundingRule?)
     }
 }
 
@@ -182,19 +186,19 @@ private extension KeyValueDecoder {
 
         func getBinaryInteger<T: BinaryInteger>(of type: T.Type = T.self) throws -> T {
             if let binaryInt = value as? any BinaryInteger {
-                guard let val = T(exactly: binaryInt) else {
+                guard let val = T(from: binaryInt, using: strategy.integers) else {
                     let context = DecodingError.Context(codingPath: codingPath, debugDescription: "\(valueDescription) at \(codingPath.makeKeyPath()), cannot be exactly represented by \(type)")
                     throw DecodingError.typeMismatch(type, context)
                 }
                 return val
             } else if let int64 = (value as? NSNumber)?.getInt64Value() {
-                guard let val = T(exactly: int64) else {
+                guard let val = T(from: int64, using: strategy.integers) else {
                     let context = DecodingError.Context(codingPath: codingPath, debugDescription: "\(valueDescription) at \(codingPath.makeKeyPath()), cannot be exactly represented by \(type)")
                     throw DecodingError.typeMismatch(type, context)
                 }
                 return val
-            } else if let double = getDoubleValue(from: value, using: strategy.integers) {
-                guard let val = T(exactly: double) else {
+            } else if let double = (value as? NSNumber)?.getDoubleValue() {
+                guard let val = T(from: double, using: strategy.integers) else {
                     let context = DecodingError.Context(codingPath: codingPath, debugDescription: "\(valueDescription) at \(codingPath.makeKeyPath()), cannot be exactly represented by \(type)")
                     throw DecodingError.typeMismatch(type, context)
                 }
@@ -209,17 +213,19 @@ private extension KeyValueDecoder {
             }
         }
 
-        func getDoubleValue(from value: Any, using strategy: IntDecodingStrategy) -> Double? {
-            guard let double = (value as? NSNumber)?.getDoubleValue() else {
-                return nil
-            }
-            switch strategy {
-            case .exact:
-                return double
-            case .rounded(rule: let rule):
-                return double.rounded(rule)
-            }
-        }
+//        func getDoubleValue(from value: Any, using strategy: IntDecodingStrategy) -> Double? {
+//            guard let double = (value as? NSNumber)?.getDoubleValue() else {
+//                return nil
+//            }
+//            switch strategy {
+//            case .exact:
+//                return double
+//            case .rounded(rule: let rule):
+//                return double.rounded(rule)
+//            case .clamping(rule: let rule):
+//                return double.rounded(rule)
+//            }
+//        }
 
         func decode(_ type: Bool.Type) throws -> Bool {
             try getValue()
@@ -636,6 +642,42 @@ private extension KeyValueDecoder {
                 strategy: strategy
             )
             return Decoder(container: container)
+        }
+    }
+}
+
+extension BinaryInteger {
+
+    init?(from source: Double, using strategy: KeyValueDecoder.IntDecodingStrategy) {
+        switch strategy {
+        case .exact:
+            self.init(exactly: source)
+        case .rounding(rule: let rule):
+            self.init(exactly: source.rounded(rule))
+        case .clamping(roundingRule: let rule):
+           self.init(clamping: source, rule: rule)
+        }
+    }
+
+    init?(from source: some BinaryInteger, using strategy: KeyValueDecoder.IntDecodingStrategy) {
+        switch strategy {
+        case .exact, .rounding:
+            self.init(exactly: source)
+        case .clamping:
+            self.init(clamping: source)
+        }
+    }
+
+    private init?(clamping source: Double, rule: FloatingPointRoundingRule? = nil) {
+        let rounded = rule.map(source.rounded) ?? source
+        if let int = Int64(exactly: rounded) {
+            self.init(clamping: int)
+        } else if source > Double(Int64.max) {
+            self.init(clamping: Int64.max)
+        } else if source < Double(Int64.min) {
+            self.init(clamping: Int64.min)
+        } else {
+            return nil
         }
     }
 }
