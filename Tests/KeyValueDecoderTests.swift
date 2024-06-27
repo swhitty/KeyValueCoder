@@ -36,37 +36,42 @@ import XCTest
 final class KeyValueDecoderTests: XCTestCase {
 
     func testDecodes_String() {
+        let decoder = KeyValueDecoder()
+
         XCTAssertEqual(
-            try KeyValueDecoder.decode(String.self, from: "Shrimp"),
+            try decoder.decode(String.self, from: "Shrimp"),
             "Shrimp"
         )
         XCTAssertThrowsError(
-            try KeyValueDecoder.decode(String.self, from: Int16.max)
+            try decoder.decode(String.self, from: Int16.max)
         )
     }
 
     func testDecodes_RawRepresentable() {
+        let decoder = KeyValueDecoder()
+
         XCTAssertEqual(
-            try KeyValueDecoder.decode(Seafood.self, from: "fish"),
+            try decoder.decode(Seafood.self, from: "fish"),
             .fish
         )
         XCTAssertEqual(
-            try KeyValueDecoder.decode(Seafood.self, from: "chips"),
+            try decoder.decode(Seafood.self, from: "chips"),
             .chips
         )
         XCTAssertEqual(
-            try KeyValueDecoder.decode([Seafood].self, from: ["fish", "chips"]),
+            try decoder.decode([Seafood].self, from: ["fish", "chips"]),
             [.fish, .chips]
         )
         XCTAssertThrowsError(
-            try KeyValueDecoder.decode(Seafood.self, from: "invalid")
+            try decoder.decode(Seafood.self, from: "invalid")
         )
         XCTAssertThrowsError(
-            try KeyValueDecoder.decode(Seafood.self, from: 10)
+            try decoder.decode(Seafood.self, from: 10)
         )
     }
 
     func testDecodes_NestedType() {
+        let decoder = KeyValueDecoder()
         let dictionary: [String: Any] = [
             "id": 1,
             "name": "root",
@@ -76,7 +81,7 @@ final class KeyValueDecoderTests: XCTestCase {
         ]
 
         XCTAssertEqual(
-            try KeyValueDecoder.decode(Node.self, from: dictionary),
+            try decoder.decode(Node.self, from: dictionary),
             Node(id: 1,
                  name: "root",
                  descendents: [Node(id: 2), Node(id: 3)],
@@ -86,51 +91,59 @@ final class KeyValueDecoderTests: XCTestCase {
         )
 
         XCTAssertThrowsError(
-            try KeyValueDecoder.decode(Node.self, from: [String: Any]())
+            try decoder.decode(Node.self, from: [String: Any]())
         )
     }
 
     func testDecodes_Ints() {
+        let decoder = KeyValueDecoder()
+
         XCTAssertEqual(
-            try KeyValueDecoder.decode(Int16.self, from: Int16.max),
+            try decoder.decode(Int16.self, from: Int16.max),
             Int16.max
         )
         XCTAssertEqual(
-            try KeyValueDecoder.decode(Int16.self, from: UInt16(10)),
+            try decoder.decode(Int16.self, from: UInt16(10)),
             10
         )
         XCTAssertEqual(
-            try KeyValueDecoder.decode(Int16.self, from: NSNumber(10)),
+            try decoder.decode(Int16.self, from: NSNumber(10)),
             10
         )
         XCTAssertEqual(
-            try KeyValueDecoder.decode(Int16.self, from: 10.0),
+            try decoder.decode(Int16.self, from: 10.0),
             10
         )
         XCTAssertEqual(
-            try KeyValueDecoder.decode(Int16.self, from: NSNumber(10.0)),
+            try decoder.decode(Int16.self, from: NSNumber(10.0)),
             10
         )
         XCTAssertThrowsError(
-            try KeyValueDecoder.decode(Int8.self, from: Int16.max)
+            try decoder.decode(Int8.self, from: Int16.max)
         )
         XCTAssertThrowsError(
-            try KeyValueDecoder.decode(Int8.self, from: NSNumber(value: Int16.max))
+            try decoder.decode(Int8.self, from: NSNumber(value: Int16.max))
         )
         XCTAssertThrowsError(
-            try KeyValueDecoder.decode(Int16.self, from: UInt16.max)
+            try decoder.decode(Int16.self, from: UInt16.max)
         )
         XCTAssertThrowsError(
-            try KeyValueDecoder.decode(Int16.self, from: Optional<Int16>.none)
+            try decoder.decode(Int16.self, from: Optional<Int16>.none as Any)
         )
         XCTAssertThrowsError(
-            try KeyValueDecoder.decode(Int16.self, from: NSNull())
+            try decoder.decode(Int16.self, from: NSNull())
         )
         XCTAssertThrowsError(
-            try KeyValueDecoder.decode(Int8.self, from: 10.1)
+            try decoder.decode(Int8.self, from: 10.1)
         )
         XCTAssertThrowsError(
-            try KeyValueDecoder.decode(Int8.self, from: NSNumber(10.1))
+            try decoder.decode(Int8.self, from: NSNumber(10.1))
+        )
+        XCTAssertThrowsError(
+            try decoder.decode(Int8.self, from: Double.nan)
+        )
+        XCTAssertThrowsError(
+            try decoder.decode(Int8.self, from: Double.infinity)
         )
     }
 
@@ -179,42 +192,56 @@ final class KeyValueDecoderTests: XCTestCase {
         XCTAssertThrowsError(
             try decoder.decode(Int16.self, from: NSNull())
         )
+        XCTAssertThrowsError(
+            try decoder.decode(Int16.self, from: Double.nan)
+        )
+        XCTAssertThrowsError(
+            try decoder.decode(Int16.self, from: Double.infinity)
+        )
     }
 
     func testDecodes_UInts() {
+        let decoder = KeyValueDecoder()
+
         XCTAssertEqual(
-            try KeyValueDecoder.decode(UInt16.self, from: UInt16.max),
+            try decoder.decode(UInt16.self, from: UInt16.max),
             UInt16.max
         )
         XCTAssertEqual(
-            try KeyValueDecoder.decode(UInt8.self, from: NSNumber(10)),
+            try decoder.decode(UInt8.self, from: NSNumber(10)),
             10
         )
         XCTAssertEqual(
-            try KeyValueDecoder.decode(UInt8.self, from: 10.0),
+            try decoder.decode(UInt8.self, from: 10.0),
             10
         )
         XCTAssertEqual(
-            try KeyValueDecoder.decode(UInt8.self, from: NSNumber(10.0)),
+            try decoder.decode(UInt8.self, from: NSNumber(10.0)),
             10
         )
         XCTAssertThrowsError(
-            try KeyValueDecoder.decode(UInt8.self, from: UInt16.max)
+            try decoder.decode(UInt8.self, from: UInt16.max)
         )
         XCTAssertThrowsError(
-            try KeyValueDecoder.decode(UInt8.self, from: NSNumber(-10))
+            try decoder.decode(UInt8.self, from: NSNumber(-10))
         )
         XCTAssertThrowsError(
-            try KeyValueDecoder.decode(UInt8.self, from: Optional<UInt8>.none)
+            try decoder.decode(UInt8.self, from: Optional<UInt8>.none as Any)
         )
         XCTAssertThrowsError(
-            try KeyValueDecoder.decode(UInt8.self, from: NSNull())
+            try decoder.decode(UInt8.self, from: NSNull())
         )
         XCTAssertThrowsError(
-            try KeyValueDecoder.decode(UInt8.self, from: 10.1)
+            try decoder.decode(UInt8.self, from: 10.1)
         )
         XCTAssertThrowsError(
-            try KeyValueDecoder.decode(UInt8.self, from: NSNumber(10.1))
+            try decoder.decode(UInt8.self, from: NSNumber(10.1))
+        )
+        XCTAssertThrowsError(
+            try decoder.decode(UInt16.self, from: Double.nan)
+        )
+        XCTAssertThrowsError(
+            try decoder.decode(UInt16.self, from: Double.infinity)
         )
     }
 
@@ -262,153 +289,171 @@ final class KeyValueDecoderTests: XCTestCase {
         XCTAssertThrowsError(
             try decoder.decode(UInt16.self, from: NSNull())
         )
+        XCTAssertThrowsError(
+            try decoder.decode(UInt16.self, from: Double.nan)
+        )
+        XCTAssertThrowsError(
+            try decoder.decode(UInt16.self, from: Double.infinity)
+        )
     }
 
     func testDecodes_Float(){
+        let decoder = KeyValueDecoder()
+
         XCTAssertEqual(
-            try KeyValueDecoder.decode(Float.self, from: 10),
+            try decoder.decode(Float.self, from: 10),
             10
         )
         XCTAssertEqual(
-            try KeyValueDecoder.decode(Float.self, from: -100.5),
+            try decoder.decode(Float.self, from: -100.5),
             -100.5
         )
         XCTAssertEqual(
-            try KeyValueDecoder.decode(Float.self, from: UInt8.max),
+            try decoder.decode(Float.self, from: UInt8.max),
             255
         )
         XCTAssertEqual(
-            try KeyValueDecoder.decode(Float.self, from: UInt64.max),
+            try decoder.decode(Float.self, from: UInt64.max),
             Float(UInt64.max)
         )
         XCTAssertEqual(
-            try KeyValueDecoder.decode(Float.self, from: NSNumber(20)),
+            try decoder.decode(Float.self, from: NSNumber(20)),
             20
         )
         XCTAssertEqual(
-            try KeyValueDecoder.decode(Float.self, from: NSNumber(value: 50.5)),
+            try decoder.decode(Float.self, from: NSNumber(value: 50.5)),
             50.5
         )
         XCTAssertEqual(
-            try KeyValueDecoder.decode(Float.self, from: Decimal.pi),
+            try decoder.decode(Float.self, from: Decimal.pi),
             Float((Decimal.pi as NSNumber).doubleValue)
         )
         XCTAssertEqual(
-            try KeyValueDecoder.decode(Float.self, from: UInt.max),
+            try decoder.decode(Float.self, from: UInt.max),
             Float(UInt.max)
         )
         XCTAssertThrowsError(
-            try KeyValueDecoder.decode(Float.self, from: true)
+            try decoder.decode(Float.self, from: true)
         )
     }
 
     func testDecodes_Double(){
+        let decoder = KeyValueDecoder()
+
         XCTAssertEqual(
-            try KeyValueDecoder.decode(Double.self, from: 10),
+            try decoder.decode(Double.self, from: 10),
             10
         )
         XCTAssertEqual(
-            try KeyValueDecoder.decode(Double.self, from: -100.5),
+            try decoder.decode(Double.self, from: -100.5),
             -100.5
         )
         XCTAssertEqual(
-            try KeyValueDecoder.decode(Double.self, from: UInt8.max),
+            try decoder.decode(Double.self, from: UInt8.max),
             255
         )
         XCTAssertEqual(
-            try KeyValueDecoder.decode(Double.self, from: UInt64.max),
+            try decoder.decode(Double.self, from: UInt64.max),
             Double(UInt64.max)
         )
         XCTAssertEqual(
-            try KeyValueDecoder.decode(Double.self, from: NSNumber(20)),
+            try decoder.decode(Double.self, from: NSNumber(20)),
             20
         )
         XCTAssertEqual(
-            try KeyValueDecoder.decode(Double.self, from: NSNumber(value: 50.5)),
+            try decoder.decode(Double.self, from: NSNumber(value: 50.5)),
             50.5
         )
         XCTAssertEqual(
-            try KeyValueDecoder.decode(Double.self, from: Decimal.pi),
+            try decoder.decode(Double.self, from: Decimal.pi),
             (Decimal.pi as NSNumber).doubleValue
         )
         XCTAssertEqual(
-            try KeyValueDecoder.decode(Double.self, from: UInt.max),
+            try decoder.decode(Double.self, from: UInt.max),
             Double(UInt.max)
         )
         XCTAssertThrowsError(
-            try KeyValueDecoder.decode(Double.self, from: true)
+            try decoder.decode(Double.self, from: true)
         )
     }
 
     func testDecodes_Decimal() {
+        let decoder = KeyValueDecoder()
+
         XCTAssertEqual(
-            try KeyValueDecoder.decode(Decimal.self, from: 10),
+            try decoder.decode(Decimal.self, from: 10),
             10
         )
         XCTAssertEqual(
-            try KeyValueDecoder.decode(Decimal.self, from: -100.5),
+            try decoder.decode(Decimal.self, from: -100.5),
             -100.5
         )
         XCTAssertEqual(
-            try KeyValueDecoder.decode(Decimal.self, from: UInt8.max),
+            try decoder.decode(Decimal.self, from: UInt8.max),
             255
         )
         XCTAssertEqual(
-            try KeyValueDecoder.decode(Decimal.self, from: NSNumber(20)),
+            try decoder.decode(Decimal.self, from: NSNumber(20)),
             20
         )
         XCTAssertEqual(
-            try KeyValueDecoder.decode(Decimal.self, from: NSNumber(value: 50.5)),
+            try decoder.decode(Decimal.self, from: NSNumber(value: 50.5)),
             50.5
         )
         XCTAssertEqual(
-            try KeyValueDecoder.decode(Decimal.self, from: Decimal.pi),
+            try decoder.decode(Decimal.self, from: Decimal.pi),
             .pi
         )
         XCTAssertEqual(
-            try KeyValueDecoder.decode(Decimal.self, from: UInt.max),
+            try decoder.decode(Decimal.self, from: UInt.max),
             Decimal(UInt.max)
         )
         XCTAssertThrowsError(
-            try KeyValueDecoder.decode(Decimal.self, from: true)
+            try decoder.decode(Decimal.self, from: true)
         )
     }
 
     func testDecodes_URL() {
+        let decoder = KeyValueDecoder()
+
         XCTAssertEqual(
-            try KeyValueDecoder.decode(URL.self, from: "fish.com"),
+            try decoder.decode(URL.self, from: "fish.com"),
             URL(string: "fish.com")
         )
         XCTAssertEqual(
-            try KeyValueDecoder.decode(AllTypes.self, from: ["tURL": "fish.com"]),
+            try decoder.decode(AllTypes.self, from: ["tURL": "fish.com"]),
             AllTypes(tURL: URL(string: "fish.com")!)
         )
 
         XCTAssertEqual(
-            try KeyValueDecoder.decode(URL.self, from: "fish.com"),
+            try decoder.decode(URL.self, from: "fish.com"),
             URL(string: "fish.com")
         )
         XCTAssertEqual(
-            try KeyValueDecoder.decode(URL.self, from: URL(string: "fish.com")!),
+            try decoder.decode(URL.self, from: URL(string: "fish.com")!),
             URL(string: "fish.com")
         )
 
         XCTAssertThrowsError(
-            try KeyValueDecoder.decode(URL.self, from: "")
+            try decoder.decode(URL.self, from: "")
         )
     }
 
     func testDecodes_Date() {
+        let decoder = KeyValueDecoder()
+
         let date = Date(timeIntervalSinceReferenceDate: 0)
         XCTAssertEqual(
-            try KeyValueDecoder.decode(Date.self, from: date),
+            try decoder.decode(Date.self, from: date),
             date
         )
     }
 
     func testDecodes_Data() {
+        let decoder = KeyValueDecoder()
+
         XCTAssertEqual(
-            try KeyValueDecoder.decode(Data.self, from: Data([0x01])),
+            try decoder.decode(Data.self, from: Data([0x01])),
             Data([0x01])
         )
     }
@@ -443,8 +488,10 @@ final class KeyValueDecoderTests: XCTestCase {
     }
 
     func testDecodes_NestedUnkeyed() {
+        let decoder = KeyValueDecoder()
+
         XCTAssertEqual(
-            try KeyValueDecoder.decode([[Seafood]].self, from: [["fish", "chips"], ["fish"]]),
+            try decoder.decode([[Seafood]].self, from: [["fish", "chips"], ["fish"]]),
             [[.fish, .chips], [.fish]]
         )
     }
@@ -478,14 +525,16 @@ final class KeyValueDecoderTests: XCTestCase {
     }
 
     func testDecodes_KeyedBool() {
+        let decoder = KeyValueDecoder()
+
         XCTAssertEqual(
-            try KeyValueDecoder.decode(AllTypes.self, from: ["tBool": true]),
+            try decoder.decode(AllTypes.self, from: ["tBool": true]),
             AllTypes(
                 tBool: true
             )
         )
         XCTAssertEqual(
-            try KeyValueDecoder.decode(AllTypes.self, from: ["tBool": false]),
+            try decoder.decode(AllTypes.self, from: ["tBool": false]),
             AllTypes(
                 tBool: false
             )
