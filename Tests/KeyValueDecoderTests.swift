@@ -168,16 +168,16 @@ final class KeyValueDecoderTests: XCTestCase {
         )
 
         XCTAssertThrowsError(
-            try KeyValueDecoder.decode(Int8.self, from: Double(Int16.max))
+            try decoder.decode(Int8.self, from: Double(Int16.max))
         )
         XCTAssertThrowsError(
-            try KeyValueDecoder.decode(Int8.self, from: NSNumber(value: Double(Int16.max)))
+            try decoder.decode(Int8.self, from: NSNumber(value: Double(Int16.max)))
         )
         XCTAssertThrowsError(
-            try KeyValueDecoder.decode(Int16.self, from: Optional<Double>.none)
+            try decoder.decode(Int16.self, from: Optional<Double>.none as Any)
         )
         XCTAssertThrowsError(
-            try KeyValueDecoder.decode(Int16.self, from: NSNull())
+            try decoder.decode(Int16.self, from: NSNull())
         )
     }
 
@@ -248,19 +248,19 @@ final class KeyValueDecoderTests: XCTestCase {
         )
 
         XCTAssertThrowsError(
-            try KeyValueDecoder.decode(UInt8.self, from: Double(Int16.max))
+            try decoder.decode(UInt8.self, from: Double(Int16.max))
         )
         XCTAssertThrowsError(
-            try KeyValueDecoder.decode(UInt8.self, from: NSNumber(value: Double(Int16.max)))
+            try decoder.decode(UInt8.self, from: NSNumber(value: Double(Int16.max)))
         )
         XCTAssertThrowsError(
-            try KeyValueDecoder.decode(UInt16.self, from: Double(-1))
+            try decoder.decode(UInt16.self, from: Double(-1))
         )
         XCTAssertThrowsError(
-            try KeyValueDecoder.decode(UInt16.self, from: Optional<Double>.none)
+            try decoder.decode(UInt16.self, from: Optional<Double>.none as Any)
         )
         XCTAssertThrowsError(
-            try KeyValueDecoder.decode(UInt16.self, from: NSNull())
+            try decoder.decode(UInt16.self, from: NSNull())
         )
     }
 
