@@ -295,7 +295,8 @@ private extension KeyValueDecoder {
 
         func decode(_ type: URL.Type) throws -> URL {
             if let string = value as? String,
-               let url = URL(string: string){
+               !string.isEmpty,
+               let url = URL(string: string) {
                 return url
             }
             return try getValue()
