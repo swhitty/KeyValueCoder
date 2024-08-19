@@ -213,20 +213,6 @@ private extension KeyValueDecoder {
             }
         }
 
-//        func getDoubleValue(from value: Any, using strategy: IntDecodingStrategy) -> Double? {
-//            guard let double = (value as? NSNumber)?.getDoubleValue() else {
-//                return nil
-//            }
-//            switch strategy {
-//            case .exact:
-//                return double
-//            case .rounded(rule: let rule):
-//                return double.rounded(rule)
-//            case .clamping(rule: let rule):
-//                return double.rounded(rule)
-//            }
-//        }
-
         func decode(_ type: Bool.Type) throws -> Bool {
             try getValue()
         }

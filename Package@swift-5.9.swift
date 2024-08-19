@@ -1,4 +1,4 @@
-// swift-tools-version:6.0
+// swift-tools-version:5.9
 import PackageDescription
 
 let package = Package(
@@ -32,7 +32,7 @@ extension Array where Element == SwiftSetting {
     static var upcomingFeatures: [SwiftSetting] {
         [
             .enableUpcomingFeature("ExistentialAny"),
-            .swiftLanguageMode(.v6)
+            .enableExperimentalFeature("StrictConcurrency")
         ]
     }
 }

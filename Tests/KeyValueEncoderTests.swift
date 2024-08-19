@@ -54,7 +54,7 @@ final class KeyValueEncodedTests: XCTestCase {
     }
 
     func testSingleContainer_Encodes_Duration() throws {
-        guard #available(iOS 16.0, macOS 13.0, *) else { return }
+        guard #available(iOS 16.0, tvOS 16.0, watchOS 9.0, *) else { return }
         XCTAssertEqual(
             try KeyValueEncoder.encodeSingleValue {
                 try $0.encode(Duration.nanoseconds(1))
@@ -716,7 +716,7 @@ private struct StubEncoder: Encodable {
     }
 }
 
-extension AnyCodingKey: ExpressibleByStringLiteral {
+extension AnyCodingKey: Swift.ExpressibleByStringLiteral {
     public init(stringLiteral value: String) {
         self.init(stringValue: value)
     }
@@ -737,7 +737,7 @@ struct Node: Codable, Equatable {
     }
 }
 
-extension KeyValueEncoder.EncodedValue: Equatable {
+extension KeyValueEncoder.EncodedValue: Swift.Equatable {
 
     public static func ==(lhs: Self, rhs: Self) -> Bool {
         do {
