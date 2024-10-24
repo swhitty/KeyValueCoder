@@ -29,8 +29,8 @@
 //  SOFTWARE.
 //
 
-import Foundation
 import CoreFoundation
+import Foundation
 
 /// Top level encoder that converts `[String: Any]`, `[Any]` or `Any` into `Codable` types.
 public final class KeyValueDecoder {

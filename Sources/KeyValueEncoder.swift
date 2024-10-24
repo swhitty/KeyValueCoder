@@ -100,7 +100,7 @@ extension KeyValueEncoder {
         }
     }
 
-    func encodeValue<T: Encodable>(_ value: T) throws -> EncodedValue{
+    func encodeValue<T: Encodable>(_ value: T) throws -> EncodedValue {
         try Encoder(userInfo: userInfo, nilEncodingStrategy: nilEncodingStrategy).encodeToValue(value)
     }
 }
@@ -422,7 +422,11 @@ private extension KeyValueEncoder {
                 return
             }
 
-            let encoder = Encoder(codingPath: codingPath.appending(index: count), userInfo: userInfo, nilEncodingStrategy: nilEncodingStrategy)
+            let encoder = Encoder(
+                codingPath: codingPath.appending(index: count),
+                userInfo: userInfo,
+                nilEncodingStrategy: nilEncodingStrategy
+            )
             if let value = try encoder.encodeToValue(value).getValue(strategy: nilEncodingStrategy) {
                 appendValue(value)
             } else {

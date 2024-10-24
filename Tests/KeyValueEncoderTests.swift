@@ -214,7 +214,7 @@ struct KeyValueEncodedTests {
                 "name": "root",
                 "desc": [["id": 2], ["id": 3]],
                 "rel": ["left": ["id": 4, "desc": [["id": 5]] as Any],
-                        "right": ["id": 6]],
+                        "right": ["id": 6]]
             ]
         )
     }
@@ -231,7 +231,7 @@ struct KeyValueEncodedTests {
                 "first": Optional<Any>.none as Any,
                 "second": "fish",
                 "third": Optional<Any>.none as Any,
-                "fourth": NSDictionary(),
+                "fourth": NSDictionary()
             ]
         )
     }
@@ -299,7 +299,7 @@ struct KeyValueEncodedTests {
                "tInt32": -40,
                "tInt64": Int64.max,
                "tArray": [["tInt": -1], ["tInt": -2]],
-               "tDictionary": ["rel": ["tInt": -3]],
+               "tDictionary": ["rel": ["tInt": -3]]
            ]
         )
     }
@@ -324,7 +324,7 @@ struct KeyValueEncodedTests {
                "tUInt32": 40,
                "tUInt64": UInt64.max,
                "tArray": [["tUInt": 50], ["tUInt": 60]],
-               "tDictionary": ["rel": ["tUInt": 70]],
+               "tDictionary": ["rel": ["tUInt": 70]]
            ]
         )
     }
@@ -622,7 +622,7 @@ struct KeyValueEncodedTests {
                 try $0.encode(Null(), forKey: "chips")
             }.getValue() as? NSDictionary == [
                 "fish": "$null",
-                "chips": "$null",
+                "chips": "$null"
             ]
         )
         #expect(
@@ -631,7 +631,7 @@ struct KeyValueEncodedTests {
                 try $0.encode(Null(), forKey: "chips")
             }.getValue() as? NSDictionary == [
                 "fish": NSNull(),
-                "chips": NSNull(),
+                "chips": NSNull()
             ]
         )
     }
@@ -688,7 +688,8 @@ private extension KeyValueEncoder {
 
     static func encodeKeyedValue<K: CodingKey>(keyedBy: K.Type = K.self,
                                                nilEncodingStrategy: NilEncodingStrategy = .default,
-                                               with closure: @escaping (inout KeyedEncodingContainer<K>) throws -> Void) throws -> EncodedValue {
+                                               with closure: @escaping (inout KeyedEncodingContainer<K>) throws -> Void) throws
+        -> EncodedValue {
         let encoder = KeyValueEncoder()
         encoder.nilEncodingStrategy = nilEncodingStrategy
         return try encoder.encodeValue {
@@ -741,7 +742,7 @@ struct Node: Codable, Equatable {
 
 extension KeyValueEncoder.EncodedValue: Swift.Equatable {
 
-    public static func ==(lhs: Self, rhs: Self) -> Bool {
+    public static func == (lhs: Self, rhs: Self) -> Bool {
         do {
             let lhsValue = try lhs.getValue()
             let rhsValue = try rhs.getValue()

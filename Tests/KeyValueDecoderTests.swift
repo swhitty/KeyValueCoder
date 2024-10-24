@@ -78,7 +78,7 @@ struct KeyValueDecoderTests {
             "name": "root",
             "desc": [["id": 2], ["id": 3]],
             "rel": ["left": ["id": 4, "desc": [["id": 5]] as Any],
-                    "right": ["id": 6]],
+                    "right": ["id": 6]]
         ]
 
         #expect(
@@ -828,7 +828,8 @@ struct KeyValueDecoderTests {
         #expect(NSNumber(value: UInt8.max).getInt64Value() == Int64(UInt8.max))
         #expect(NSNumber(value: UInt16.max).getInt64Value() == Int64(UInt16.max))
         #expect(NSNumber(value: UInt32.max).getInt64Value() == Int64(UInt32.max))
-        #expect(NSNumber(value: UInt64.max).getInt64Value() == -1) // NSNumber stores unsigned values with sign in the next largest size but 64bit is largest size.
+        // NSNumber stores unsigned values with sign in the next largest size but 64bit is largest size.
+        #expect(NSNumber(value: UInt64.max).getInt64Value() == -1)
         #expect(NSNumber(10.5).getInt64Value() == nil)
         #expect(NSNumber(true).getInt64Value() == nil)
     }
@@ -993,7 +994,11 @@ private extension KeyValueDecoder {
 
     }
 
-    static func decodeValue<K: CodingKey, T>(from value: [String: Any], keyedBy: K.Type = K.self, with closure: @escaping (inout KeyedDecodingContainer<K>) throws -> T) throws -> T {
+    static func decodeValue<K: CodingKey, T>(
+        from value: [String: Any],
+        keyedBy: K.Type = K.self,
+        with closure: @escaping (inout KeyedDecodingContainer<K>
+        ) throws -> T) throws -> T {
         let proxy = StubDecoder.Proxy { decoder in
             var container = try decoder.container(keyedBy: K.self)
             return try closure(&container)
@@ -1005,7 +1010,10 @@ private extension KeyValueDecoder {
         return proxy.result!
     }
 
-    static func decodeUnkeyedValue<T>(from value: [Any], with closure: @escaping (inout any UnkeyedDecodingContainer) throws -> T) throws -> T {
+    static func decodeUnkeyedValue<T>(
+        from value: [Any],
+        with closure: @escaping (inout any UnkeyedDecodingContainer) throws -> T
+    ) throws -> T {
         let proxy = StubDecoder.Proxy { decoder in
             var container = try decoder.unkeyedContainer()
             return try closure(&container)
