@@ -355,7 +355,7 @@ struct KeyValueEncodedTests {
     }
 
     @Test
-    func testKeyedContainer_Encodes_SuperContainer() throws {
+    func keyedContainer_Encodes_SuperContainer() throws {
         #expect(
             try KeyValueEncoder.encodeKeyedValue(keyedBy: AnyCodingKey.self) {
                 try Int(10).encode(to: $0.superEncoder())
@@ -366,7 +366,7 @@ struct KeyValueEncodedTests {
     }
 
     @Test
-    func testUnkeyedContainer_Encodes_Optionals() throws {
+    func unkeyedContainer_Encodes_Optionals() throws {
         #expect(
             try KeyValueEncoder.encodeUnkeyedValue {
                 try $0.encode(String?.none)
@@ -637,6 +637,7 @@ struct KeyValueEncodedTests {
     }
 
     #if !os(WASI)
+    @Test
     func plistCompatibleEncoder() throws {
         let keyValueAny = try KeyValueEncoder.makePlistCompatible().encode([1, 2, Int?.none, 4])
         #expect(

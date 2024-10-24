@@ -33,117 +33,116 @@
 @testable import KeyValueCoder
 
 import Foundation
-import XCTest
+import Testing
 
 #if !os(WASI)
-final class UserDefaultsCodableTests: XCTestCase {
+struct UserDefaultsCodableTests {
 
-    func testEncodes_Single() {
+    @Test
+    func encodes_Single() throws {
         let defaults = UserDefaults.makeMock()
 
-        XCTAssertNil(
-            try defaults.decode(Bool.self, forKey: "flag")
+        #expect(
+            try defaults.decode(Bool.self, forKey: "flag") == nil
         )
 
-        XCTAssertNoThrow(
+        #expect(throws: Never.self) {
             try defaults.encode(true, forKey: "flag")
+        }
+
+        #expect(
+            try defaults.decode(Bool.self, forKey: "flag") == true
         )
 
-        XCTAssertEqual(
-            try defaults.decode(Bool.self, forKey: "flag"),
-            true
-        )
-
-        XCTAssertNoThrow(
+        #expect(throws: Never.self) {
             try defaults.encode(false, forKey: "flag")
-        )
+        }
 
-        XCTAssertEqual(
-            try defaults.decode(Bool.self, forKey: "flag"),
-            false
+        #expect(
+            try defaults.decode(Bool.self, forKey: "flag") == false
         )
 
         defaults.removeObject(forKey: "flag")
 
-        XCTAssertNil(
-            try defaults.decode(Bool.self, forKey: "flag")
+        #expect(
+            try defaults.decode(Bool.self, forKey: "flag") == nil
         )
     }
 
-    func testNil_RemovesObject() {
+    @Test
+    func nil_RemovesObject() throws {
         let defaults = UserDefaults.makeMock()
         defaults.set("fish", forKey: "food")
 
-        XCTAssertEqual(
-            try defaults.decode(Seafood.self, forKey: "food"),
-            .fish
+        #expect(
+            try defaults.decode(Seafood.self, forKey: "food") == .fish
         )
 
-        XCTAssertNoThrow(
+        #expect(throws: Never.self) {
             try defaults.encode(Seafood?.none, forKey: "food")
-        )
+        }
 
-        XCTAssertNil(
-            defaults.object(forKey: "food")
+        #expect(
+            defaults.object(forKey: "food") == nil
         )
-        XCTAssertNil(
-            try defaults.decode(Seafood.self, forKey: "food")
+        #expect(
+            try defaults.decode(Seafood.self, forKey: "food") == nil
         )
     }
 
-    func testEncodes_RawRepresenable() {
+    @Test
+    func encodes_RawRepresenable() throws {
         let defaults = UserDefaults.makeMock()
 
-        XCTAssertNil(
-            try defaults.decode(Seafood.self, forKey: "food")
+        #expect(
+            try defaults.decode(Seafood.self, forKey: "food") == nil
         )
 
-        XCTAssertNoThrow(
+        #expect(throws: Never.self) {
             try defaults.encode(Seafood.fish, forKey: "food")
-        )
+        }
 
-        XCTAssertEqual(
-            try defaults.decode(Seafood.self, forKey: "food"),
-            .fish
+        #expect(
+            try defaults.decode(Seafood.self, forKey: "food") == .fish
         )
     }
 
-    func testEncodes_Array() {
+    @Test
+    func encodes_Array() throws {
         let defaults = UserDefaults.makeMock()
 
-        XCTAssertNil(
-            try defaults.decode([Int].self, forKey: "count")
+        #expect(
+            try defaults.decode([Int].self, forKey: "count") == nil
         )
 
-        XCTAssertNoThrow(
+        #expect(throws: Never.self) {
             try defaults.encode([1, 2, 3], forKey: "count")
-        )
+        }
 
-        XCTAssertEqual(
-            try defaults.decode([Int].self, forKey: "count"),
-            [1, 2, 3]
+        #expect(
+            try defaults.decode([Int].self, forKey: "count") ==  [1, 2, 3]
         )
     }
 
-    func testEncodes_Ints() {
+    @Test
+    func encodes_Ints() throws {
         let defaults = UserDefaults.makeMock()
 
-        XCTAssertNil(
-            try defaults.decode(AllTypes.self, forKey: "ints")
+        #expect(
+            try defaults.decode(AllTypes.self, forKey: "ints") == nil
         )
 
-        XCTAssertNoThrow(
+        #expect(throws: Never.self) {
             try defaults.encode(
                 AllTypes(tInt: 1,
                          tInt8: -2,
                          tInt16: .max,
                          tInt64: .max),
                 forKey: "ints")
-        )
+        }
 
-        XCTAssertEqual(
-            try defaults.decode(AllTypes.self, forKey: "ints"),
-            AllTypes(
+        #expect(
+            try defaults.decode(AllTypes.self, forKey: "ints") == AllTypes(
                 tInt: 1,
                 tInt8: -2,
                 tInt16: .max,
@@ -152,25 +151,25 @@ final class UserDefaultsCodableTests: XCTestCase {
         )
     }
 
-    func testEncodes_UInts() {
+    @Test
+    func encodes_UInts() throws {
         let defaults = UserDefaults.makeMock()
 
-        XCTAssertNil(
-            try defaults.decode(AllTypes.self, forKey: "uints")
+        #expect(
+            try defaults.decode(AllTypes.self, forKey: "uints") == nil
         )
 
-        XCTAssertNoThrow(
+        #expect(throws: Never.self) {
             try defaults.encode(
                 AllTypes(tUInt: 1,
                          tUInt8: 2,
                          tUInt16: .max,
                          tUInt64: 5),
                 forKey: "uints")
-        )
+        }
 
-        XCTAssertEqual(
-            try defaults.decode(AllTypes.self, forKey: "uints"),
-            AllTypes(
+        #expect(
+            try defaults.decode(AllTypes.self, forKey: "uints") == AllTypes(
                 tUInt: 1,
                 tUInt8: 2,
                 tUInt16: .max,
@@ -179,158 +178,141 @@ final class UserDefaultsCodableTests: XCTestCase {
         )
     }
 
-    func testDecodes_String() {
+    @Test
+    func decodes_String() throws {
         let defaults = UserDefaults.makeMock()
 
         defaults.set("YES", forKey: "flag")
-        XCTAssertEqual(
-            defaults.string(forKey: "flag"),
-            "YES"
+        #expect(
+            defaults.string(forKey: "flag") == "YES"
         )
-        XCTAssertEqual(
-            try defaults.decode(String.self, forKey: "flag"),
-            "YES"
+        #expect(
+            try defaults.decode(String.self, forKey: "flag") == "YES"
         )
 
         #if canImport(Darwin)
         defaults.set(1, forKey: "flag")
-        XCTAssertEqual(
-            defaults.string(forKey: "flag"),
-            "1"
+        #expect(
+            defaults.string(forKey: "flag") == "1"
         )
-        XCTAssertEqual(
-            try defaults.decode(String.self, forKey: "flag"),
-            "1"
+        #expect(
+            try defaults.decode(String.self, forKey: "flag") == "1"
         )
         #endif
     }
 
-    func testDecodes_Bool() {
+    @Test
+    func decodes_Bool() throws {
         let defaults = UserDefaults.makeMock()
 
         defaults.set("YES", forKey: "flag")
-        XCTAssertTrue(defaults.bool(forKey: "flag"))
-        XCTAssertEqual(
-            try defaults.decode(Bool.self, forKey: "flag"),
-            true
+        #expect(defaults.bool(forKey: "flag"))
+        #expect(
+            try defaults.decode(Bool.self, forKey: "flag") == true
         )
 
         defaults.set("NO", forKey: "flag")
-        XCTAssertFalse(defaults.bool(forKey: "flag"))
-        XCTAssertEqual(
-            try defaults.decode(Bool.self, forKey: "flag"),
-            false
+        #expect(!defaults.bool(forKey: "flag"))
+        #expect(
+            try defaults.decode(Bool.self, forKey: "flag") == false
         )
 
         defaults.set("other", forKey: "flag")
-        XCTAssertFalse(defaults.bool(forKey: "flag"))
-        XCTAssertEqual(
-            try defaults.decode(Bool.self, forKey: "flag"),
-            false
+        #expect(!defaults.bool(forKey: "flag"))
+        #expect(
+            try defaults.decode(Bool.self, forKey: "flag") == false
         )
     }
 
-    func testDecodes_Integer() {
+    @Test
+    func decodes_Integer() throws {
         let defaults = UserDefaults.makeMock()
 
         defaults.set(1, forKey: "flag")
-        XCTAssertEqual(
-            defaults.integer(forKey: "flag"),
-            1
+        #expect(
+            defaults.integer(forKey: "flag") == 1
         )
-        XCTAssertEqual(
-            try defaults.decode(Int.self, forKey: "flag"),
-            1
+        #expect(
+            try defaults.decode(Int.self, forKey: "flag") == 1
         )
 
         defaults.set("2", forKey: "flag")
-        XCTAssertEqual(
-            defaults.integer(forKey: "flag"),
-            2
+        #expect(
+            defaults.integer(forKey: "flag") == 2
         )
-        XCTAssertEqual(
-            try defaults.decode(Int.self, forKey: "flag"),
-            2
+        #expect(
+            try defaults.decode(Int.self, forKey: "flag") == 2
         )
     }
 
-    func testDecodes_Double() {
+    @Test
+    func decodes_Double() throws {
         let defaults = UserDefaults.makeMock()
 
         defaults.set(Double(1.5), forKey: "flag")
-        XCTAssertEqual(
-            defaults.double(forKey: "flag"),
-            1.5
+        #expect(
+            defaults.double(forKey: "flag") == 1.5
         )
-        XCTAssertEqual(
-            try defaults.decode(Double.self, forKey: "flag"),
-            1.5
+        #expect(
+            try defaults.decode(Double.self, forKey: "flag") == 1.5
         )
 
         defaults.set("2.5", forKey: "flag")
-        XCTAssertEqual(
-            defaults.double(forKey: "flag"),
-            2.5
+        #expect(
+            defaults.double(forKey: "flag") == 2.5
         )
-        XCTAssertEqual(
-            try defaults.decode(Double.self, forKey: "flag"),
-            2.5
+        #expect(
+            try defaults.decode(Double.self, forKey: "flag") == 2.5
         )
     }
 
-    func testDecodes_Float() {
+    @Test
+    func decodes_Float() throws {
         let defaults = UserDefaults.makeMock()
 
         defaults.set(Float(1.5), forKey: "flag")
-        XCTAssertEqual(
-            defaults.float(forKey: "flag"),
-            1.5
+        #expect(
+            defaults.float(forKey: "flag") == 1.5
         )
-        XCTAssertEqual(
-            try defaults.decode(Float.self, forKey: "flag"),
-            1.5
+        #expect(
+            try defaults.decode(Float.self, forKey: "flag") == 1.5
         )
 
         defaults.set("2.5", forKey: "flag")
-        XCTAssertEqual(
-            defaults.float(forKey: "flag"),
-            2.5
+        #expect(
+            defaults.float(forKey: "flag") == 2.5
         )
-        XCTAssertEqual(
-            try defaults.decode(Float.self, forKey: "flag"),
-            2.5
+        #expect(
+            try defaults.decode(Float.self, forKey: "flag") == 2.5
         )
     }
 
-    func testDecodes_URL() {
+    @Test
+    func decodes_URL() throws {
         let defaults = UserDefaults.makeMock()
 
         defaults.set(URL(fileURLWithPath: "/fish"), forKey: "flag")
-        XCTAssertEqual(
-            defaults.url(forKey: "flag"),
-            URL(fileURLWithPath: "/fish")
+        #expect(
+            defaults.url(forKey: "flag") == URL(fileURLWithPath: "/fish")
         )
-        XCTAssertEqual(
-            try defaults.decode(URL.self, forKey: "flag"),
-            URL(fileURLWithPath: "/fish")
+        #expect(
+            try defaults.decode(URL.self, forKey: "flag") == URL(fileURLWithPath: "/fish")
         )
 
         defaults.set("/chips", forKey: "flag")
-        XCTAssertEqual(
-            defaults.url(forKey: "flag"),
-            URL(fileURLWithPath: "/chips")
+        #expect(
+            defaults.url(forKey: "flag") == URL(fileURLWithPath: "/chips")
         )
-        XCTAssertEqual(
-            try defaults.decode(URL.self, forKey: "flag"),
-            URL(fileURLWithPath: "/chips")
+        #expect(
+            try defaults.decode(URL.self, forKey: "flag") == URL(fileURLWithPath: "/chips")
         )
     }
 }
 
 private extension UserDefaults {
-    static func makeMock() -> UserDefaults {
-        UserDefaults().removePersistentDomain(forName: "mock")
-        return UserDefaults(suiteName: "mock")!
+    static func makeMock(function: String = #function) -> UserDefaults {
+        UserDefaults().removePersistentDomain(forName: function)
+        return UserDefaults(suiteName: function)!
     }
 }
 #endif
