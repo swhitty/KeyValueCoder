@@ -1,6 +1,6 @@
 //
 //  KeyValueDecoder.swift
-//  DictionaryDecoder
+//  KeyValueCoder
 //
 //  Created by Simon Whitty on 16/17/2023.
 //  Copyright 2023 Simon Whitty

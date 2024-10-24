@@ -1,5 +1,5 @@
 //
-//  KeyValueEncoderTests.swift
+//  KeyValueEncoderXCTests.swift
 //  KeyValueCoder
 //
 //  Created by Simon Whitty on 16/17/2023.
@@ -29,178 +29,190 @@
 //  SOFTWARE.
 //
 
-#if canImport(Testing)
+#if !canImport(Testing)
 @testable import KeyValueCoder
 
-import Foundation
-import Testing
+import XCTest
 
-struct KeyValueEncodedTests {
+final class KeyValueEncodedTests: XCTestCase {
 
     typealias EncodedValue = KeyValueEncoder.EncodedValue
 
-    @Test
-    func singleContainer_Encodes_Bool() throws {
-        #expect(
+    func testSingleContainer_Encodes_Bool() throws {
+        XCTAssertEqual(
             try KeyValueEncoder.encodeSingleValue {
                 try $0.encode(true)
-            } == .value(true)
+            },
+            .value(true)
         )
 
-        #expect(
+        XCTAssertEqual(
             try KeyValueEncoder.encodeSingleValue {
                 try $0.encode(false)
-            } == .value(false)
+            },
+            .value(false)
         )
     }
 
-    @Test
-    func singleContainer_Encodes_Duration() throws {
+    func testSingleContainer_Encodes_Duration() throws {
         guard #available(iOS 16.0, tvOS 16.0, watchOS 9.0, *) else { return }
-        #expect(
+        XCTAssertEqual(
             try KeyValueEncoder.encodeSingleValue {
                 try $0.encode(Duration.nanoseconds(1))
-            } == .value([0, 1000000000])
+            },
+            .value([0, 1000000000])
         )
     }
 
-    @Test
-    func singleContainer_Encodes_String() throws {
-        #expect(
+    func testSingleContainer_Encodes_String() throws {
+        XCTAssertEqual(
             try KeyValueEncoder.encodeSingleValue {
                 try $0.encode("fish")
-            } == .value("fish")
+            },
+            .value("fish")
         )
     }
 
-    @Test
-    func singleContainer_Encodes_RawRepresentable() throws {
-        #expect(
+    func testSingleContainer_Encodes_RawRepresentable() throws {
+        XCTAssertEqual(
             try KeyValueEncoder.encodeSingleValue {
                 try $0.encode(Seafood.fish)
-            } == .value("fish")
+            },
+            .value("fish")
         )
     }
 
-    @Test
-    func singleContainer_Encodes_URL() throws {
-        #expect(
+    func testSingleContainer_Encodes_URL() throws {
+        XCTAssertEqual(
             try KeyValueEncoder.encodeSingleValue {
                 try $0.encode(URL(string: "fish.com")!)
-            } == EncodedValue(URL(string: "fish.com")!)
+            },
+            EncodedValue(URL(string: "fish.com")!)
         )
     }
 
-    @Test
-    func singleContainer_Encodes_Optionals() throws {
-        #expect(
+    func testSingleContainer_Encodes_Optionals() throws {
+        XCTAssertEqual(
             try KeyValueEncoder.encodeSingleValue {
                 try $0.encodeNil()
-            } == .null
+            },
+            .null
         )
-        #expect(
+        XCTAssertEqual(
             try KeyValueEncoder.encodeSingleValue {
                 try $0.encode(String?.none)
-            } == .null
+            },
+            .null
         )
-        #expect(
+        XCTAssertEqual(
             try KeyValueEncoder.encodeSingleValue {
                 try $0.encode(Null())
-            } == .null
+            },
+            .null
         )
-        #expect(
+        XCTAssertEqual(
             try KeyValueEncoder.encodeSingleValue {
                 try $0.encode(Empty())
-            } == .value(NSDictionary())
+            },
+            .value(NSDictionary())
         )
-        #expect(
+        XCTAssertEqual(
             try KeyValueEncoder.encodeSingleValue(nilEncodingStrategy: .removed) {
                 try $0.encode(Null())
-            } == .null
+            },
+            .null
         )
     }
 
-    @Test
-    func singleContainer_Encodes_RealNumbers() throws {
-        #expect(
+    func testSingleContainer_Encodes_RealNumbers() throws {
+        XCTAssertEqual(
             try KeyValueEncoder.encodeSingleValue {
                 try $0.encode(Float(10))
-            } == .value(Float(10))
+            },
+            .value(Float(10))
         )
-        #expect(
+        XCTAssertEqual(
             try KeyValueEncoder.encodeSingleValue {
                 try $0.encode(Double(20))
-            } == .value(Double(20))
+            },
+            .value(Double(20))
         )
     }
 
-    @Test
-    func singleContainer_Encodes_Ints() throws {
-        #expect(
+    func testSingleContainer_Encodes_Ints() throws {
+        XCTAssertEqual(
             try KeyValueEncoder.encodeSingleValue {
                 try $0.encode(Int(10))
-            } == .value(Int(10))
+            },
+            .value(Int(10))
         )
-        #expect(
+        XCTAssertEqual(
             try KeyValueEncoder.encodeSingleValue {
                 try $0.encode(Int8(20))
-            } == .value(20)
+            },
+            .value(20)
         )
-        #expect(
+        XCTAssertEqual(
             try KeyValueEncoder.encodeSingleValue {
                 try $0.encode(Int16.max)
-            } == .value(Int16.max)
+            },
+            .value(Int16.max)
         )
-        #expect(
+        XCTAssertEqual(
             try KeyValueEncoder.encodeSingleValue {
                 try $0.encode(Int32.max)
-            } == .value(Int32.max)
+            },
+            .value(Int32.max)
         )
-        #expect(
+        XCTAssertEqual(
             try KeyValueEncoder.encodeSingleValue {
                 try $0.encode(Int64.max)
-            } == .value(Int64.max)
+            },
+            .value(Int64.max)
         )
     }
 
-    @Test
-    func singleContainer_Encodes_UInts() throws {
-        #expect(
+    func testSingleContainer_Encodes_UInts() throws {
+        XCTAssertEqual(
             try KeyValueEncoder.encodeSingleValue {
                 try $0.encode(UInt(10))
-            } == .value(10)
+            },
+            .value(10)
         )
-        #expect(
+        XCTAssertEqual(
             try KeyValueEncoder.encodeSingleValue {
                 try $0.encode(UInt8(20))
-            } == .value(20)
+            },
+            .value(20)
         )
-        #expect(
+        XCTAssertEqual(
             try KeyValueEncoder.encodeSingleValue {
                 try $0.encode(UInt16.max)
-            } == .value(UInt16.max)
+            },
+            .value(UInt16.max)
         )
-        #expect(
+        XCTAssertEqual(
             try KeyValueEncoder.encodeSingleValue {
                 try $0.encode(UInt32.max)
-            } == .value(UInt32.max)
+            },
+            .value(UInt32.max)
         )
-        #expect(
+        XCTAssertEqual(
             try KeyValueEncoder.encodeSingleValue {
                 try $0.encode(UInt64.max)
-            } == .value(UInt64.max)
+            },
+            .value(UInt64.max)
         )
     }
 
-    @Test
-    func singleContainer_ReturnsEmptyObject_WhenEmpty() throws {
-        #expect(
-            try KeyValueEncoder.encodeSingleValue { _ in }.getValue() as? NSDictionary == [:]
+    func testSingleContainer_ReturnsEmptyObject_WhenEmpty() throws {
+        XCTAssertEqual(
+            try KeyValueEncoder.encodeSingleValue { _ in }.getValue() as? NSDictionary,
+            [:]
         )
     }
 
-    @Test
-    func encodes() throws {
+    func testEncodes() throws {
         let node = Node(id: 1,
              name: "root",
              descendents: [Node(id: 2), Node(id: 3)],
@@ -208,8 +220,9 @@ struct KeyValueEncodedTests {
                        "right": Node(id: 6)]
         )
 
-        #expect(
-            try KeyValueEncoder().encode(node) as? NSDictionary == [
+        XCTAssertEqual(
+            try KeyValueEncoder().encode(node) as? NSDictionary,
+            [
                 "id": 1,
                 "name": "root",
                 "desc": [["id": 2], ["id": 3]],
@@ -219,15 +232,15 @@ struct KeyValueEncodedTests {
         )
     }
 
-    @Test
-    func keyedContainer_Encodes_Optionals() throws {
-        #expect(
+    func testKeyedContainer_Encodes_Optionals() throws {
+        XCTAssertEqual(
             try KeyValueEncoder.encodeKeyedValue(keyedBy: AnyCodingKey.self) {
                 try $0.encode(String?.none, forKey: "first")
                 try $0.encode(String?.some("fish"), forKey: "second")
                 try $0.encodeNil(forKey: "third")
                 try $0.encode(Empty(), forKey: "fourth")
-            }.getValue() as? NSDictionary == [
+            }.getValue() as? NSDictionary,
+            [
                 "first": Optional<Any>.none as Any,
                 "second": "fish",
                 "third": Optional<Any>.none as Any,
@@ -236,51 +249,50 @@ struct KeyValueEncodedTests {
         )
     }
 
-    @Test
-    func keyedContainer_Encodes_Bool() throws {
+    func testKeyedContainer_Encodes_Bool() {
         let real = AllTypes(
             tBool: true,
             tArray: [AllTypes(tBool: false)]
         )
 
-        #expect(
-            try KeyValueEncoder().encode(real) as? NSDictionary == [
+        XCTAssertEqual(
+            try KeyValueEncoder().encode(real) as? NSDictionary,
+            [
                "tBool": true,
                "tArray": [["tBool": false]]
            ]
         )
     }
 
-    @Test
-    func keyedContainer_Encodes_RealNumbers() throws {
+    func testKeyedContainer_Encodes_RealNumbers() {
         let real = AllTypes(
             tDouble: 20,
             tFloat: -10
         )
 
-        #expect(
-            try KeyValueEncoder().encode(real) as? NSDictionary == [
+        XCTAssertEqual(
+            try KeyValueEncoder().encode(real) as? NSDictionary,
+            [
                "tDouble": 20,
                "tFloat": -10
            ]
         )
     }
 
-    @Test
-    func keyedContainer_Encodes_URL() throws {
+    func testKeyedContainer_Encodes_URL() {
         let urls = AllTypes(
             tURL: URL(string: "fish.com")
         )
 
-        #expect(
-            try KeyValueEncoder().encode(urls) as? NSDictionary == [
+        XCTAssertEqual(
+            try KeyValueEncoder().encode(urls) as? NSDictionary,
+            [
                "tURL": URL(string: "fish.com")!
            ]
         )
     }
 
-    @Test
-    func keyedContainer_Encodes_Ints() throws {
+    func testKeyedContainer_Encodes_Ints() {
         let ints = AllTypes(
             tInt: 10,
             tInt8: -20,
@@ -291,8 +303,9 @@ struct KeyValueEncodedTests {
             tDictionary: ["rel": AllTypes(tInt: -3)]
         )
 
-        #expect(
-            try KeyValueEncoder().encode(ints) as? NSDictionary == [
+        XCTAssertEqual(
+            try KeyValueEncoder().encode(ints) as? NSDictionary,
+            [
                "tInt": 10,
                "tInt8": -20,
                "tInt16": 30,
@@ -304,8 +317,7 @@ struct KeyValueEncodedTests {
         )
     }
 
-    @Test
-    func keyedContainer_Encodes_UInts() throws {
+    func testKeyedContainer_Encodes_UInts() {
         let uints = AllTypes(
             tUInt: 10,
             tUInt8: 20,
@@ -316,8 +328,9 @@ struct KeyValueEncodedTests {
             tDictionary: ["rel": AllTypes(tUInt: 70)]
         )
 
-        #expect(
-            try KeyValueEncoder().encode(uints) as? NSDictionary == [
+        XCTAssertEqual(
+            try KeyValueEncoder().encode(uints) as? NSDictionary,
+            [
                "tUInt": 10,
                "tUInt8": 20,
                "tUInt16": 30,
@@ -329,52 +342,52 @@ struct KeyValueEncodedTests {
         )
     }
 
-    @Test
-    func keyedContainer_Encodes_NestedKeyedContainer() throws {
-        #expect(
+    func testKeyedContainer_Encodes_NestedKeyedContainer() {
+        XCTAssertEqual(
             try KeyValueEncoder.encodeKeyedValue(keyedBy: AnyCodingKey.self) {
                 var nested = $0.nestedContainer(keyedBy: AnyCodingKey.self, forKey: "fish")
                 try nested.encode(true, forKey: "chips")
-            }.getValue() as? NSDictionary == [
+            }.getValue() as? NSDictionary,
+            [
                 "fish": ["chips": true]
             ]
         )
     }
 
-    @Test
-    func keyedContainer_Encodes_NestedUnkeyedContainer() throws {
-        #expect(
+    func testKeyedContainer_Encodes_NestedUnkeyedContainer() {
+        XCTAssertEqual(
             try KeyValueEncoder.encodeKeyedValue(keyedBy: AnyCodingKey.self) {
                 var nested = $0.nestedUnkeyedContainer(forKey: "fish")
                 try nested.encode(true)
                 try nested.encode(false)
-            }.getValue() as? NSDictionary == [
+            }.getValue() as? NSDictionary,
+            [
                 "fish": [true, false]
             ]
         )
     }
 
-    @Test
-    func testKeyedContainer_Encodes_SuperContainer() throws {
-        #expect(
+    func testKeyedContainer_Encodes_SuperContainer() {
+        XCTAssertEqual(
             try KeyValueEncoder.encodeKeyedValue(keyedBy: AnyCodingKey.self) {
                 try Int(10).encode(to: $0.superEncoder())
-            }.getValue() as? NSDictionary == [
+            }.getValue() as? NSDictionary,
+            [
                 "super": 10
             ]
         )
     }
 
-    @Test
-    func testUnkeyedContainer_Encodes_Optionals() throws {
-        #expect(
+    func testUnkeyedContainer_Encodes_Optionals() {
+        XCTAssertEqual(
             try KeyValueEncoder.encodeUnkeyedValue {
                 try $0.encode(String?.none)
                 try $0.encode(String?.some("fish"))
                 try $0.encodeNil()
                 try $0.encode("chips")
                 try $0.encode(Empty())
-            }.getValue() as? NSArray == [
+            }.getValue() as? NSArray,
+            [
                 Optional<Any>.none as Any,
                 "fish",
                 Optional<Any>.none as Any,
@@ -384,40 +397,36 @@ struct KeyValueEncodedTests {
         )
     }
 
-    @Test
-    func unkeyedContainer_Encodes_Bool() throws {
-        #expect(
+    func testUnkeyedContainer_Encodes_Bool() {
+        XCTAssertEqual(
             try KeyValueEncoder.encodeUnkeyedValue {
                 try $0.encode(true)
                 try $0.encode(false)
-            }.getValue() as? NSArray == [
-                true, false
-            ]
+            }.getValue() as? NSArray,
+            [true, false]
         )
     }
 
-    @Test
-    func unkeyedContainer_Encodes_RealNumbers() throws {
-        #expect(
+    func testUnkeyedContainer_Encodes_RealNumbers() {
+        XCTAssertEqual(
             try KeyValueEncoder.encodeUnkeyedValue {
                 try $0.encode(Float(10))
                 try $0.encode(Double(20))
-            }.getValue() as? NSArray == [
-                10, 20
-            ]
+            }.getValue() as? NSArray,
+            [10, 20]
         )
     }
 
-    @Test
-    func unkeyedContainer_Encodes_Ints() throws {
-        #expect(
+    func testUnkeyedContainer_Encodes_Ints() {
+        XCTAssertEqual(
             try KeyValueEncoder.encodeUnkeyedValue {
                 try $0.encode(Int(10))
                 try $0.encode(Int8(-20))
                 try $0.encode(Int16(30))
                 try $0.encode(Int32(-40))
                 try $0.encode(Int64.max)
-            }.getValue() as? NSArray == [
+            }.getValue() as? NSArray,
+            [
                 Int(10),
                 Int8(-20),
                 Int16(30),
@@ -427,40 +436,40 @@ struct KeyValueEncodedTests {
         )
     }
 
-    @Test
-    func unkeyedContainer_Encodes_RawRepresentable() throws {
-        #expect(
+    func testUnkeyedContainer_Encodes_RawRepresentable() throws {
+        XCTAssertEqual(
             try KeyValueEncoder.encodeUnkeyedValue {
                 try $0.encode(Seafood.fish)
                 try $0.encode(Seafood.chips)
-            }.getValue() as? NSArray == [
+            }.getValue() as? NSArray,
+            [
                 "fish",
                 "chips"
             ]
         )
     }
 
-    @Test
-    func unkeyedContainer_Encodes_URL() throws {
-        #expect(
+    func testUnkeyedContainer_Encodes_URL() throws {
+        XCTAssertEqual(
             try KeyValueEncoder.encodeUnkeyedValue {
                 try $0.encode(URL(string: "fish.com")!)
-            }.getValue() as? NSArray == [
+            }.getValue() as? NSArray,
+            [
                 URL(string: "fish.com")!
             ]
         )
     }
 
-    @Test
-    func unkeyedContainer_Encodes_UInts() throws {
-        #expect(
+    func testUnkeyedContainer_Encodes_UInts() {
+        XCTAssertEqual(
             try KeyValueEncoder.encodeUnkeyedValue {
                 try $0.encode(UInt(10))
                 try $0.encode(UInt8(20))
                 try $0.encode(UInt16(30))
                 try $0.encode(UInt32(40))
                 try $0.encode(UInt64.max)
-            }.getValue() as? NSArray == [
+            }.getValue() as? NSArray,
+            [
                 UInt(10),
                 UInt8(20),
                 UInt16(30),
@@ -470,166 +479,160 @@ struct KeyValueEncodedTests {
         )
     }
 
-    @Test
-    func unkeyedContainer_Encodes_NestedKeyedContainer() throws {
-        #expect(
+    func testUnkeyedContainer_Encodes_NestedKeyedContainer() {
+        XCTAssertEqual(
             try KeyValueEncoder.encodeUnkeyedValue {
                 try $0.encode(10)
                 var container = $0.nestedContainer(keyedBy: AnyCodingKey.self)
                 try container.encode(20, forKey: "fish")
-            }.getValue() as? NSArray == [
-                10, ["fish": 20]
-            ]
+            }.getValue() as? NSArray,
+            [10, ["fish": 20]]
         )
     }
 
-    @Test
-    func unkeyedContainer_Encodes_NestedUnkeyedContainer() throws {
-        #expect(
+    func testUnkeyedContainer_Encodes_NestedUnkeyedContainer() {
+        XCTAssertEqual(
             try KeyValueEncoder.encodeUnkeyedValue {
                 try $0.encode(10)
                 var container = $0.nestedUnkeyedContainer()
                 try container.encode(20)
                 try container.encode(30)
-            }.getValue() as? NSArray == [
-                10, [20, 30]
-            ]
+            }.getValue() as? NSArray,
+            [10, [20, 30]]
         )
     }
 
-    @Test
-    func unkeyedContainer_Encodes_SuperContainer() throws {
-        #expect(
+    func testUnkeyedContainer_Encodes_SuperContainer() {
+        XCTAssertEqual(
             try KeyValueEncoder.encodeUnkeyedValue {
                 try $0.encode(10)
                 try Int(20).encode(to: $0.superEncoder())
-            }.getValue() as? NSArray == [
-                10, 20
-            ]
+            }.getValue() as? NSArray,
+            [10, 20]
         )
     }
 
-    @Test
-    func supportedCodableTypes() {
-        #expect(
+    func testSupportedCodableTypes() {
+        XCTAssertTrue(
             EncodedValue.isSupportedValue(URL(string: "fish.com")!)
         )
-        #expect(
+        XCTAssertTrue(
             EncodedValue.isSupportedValue(Date())
         )
-        #expect(
+        XCTAssertTrue(
             EncodedValue.isSupportedValue(Data())
         )
-        #expect(
+        XCTAssertTrue(
             EncodedValue.isSupportedValue(Decimal())
         )
     }
 
-    @Test
-    func anyCodingKey() {
-        #expect(
-            AnyCodingKey(intValue: 9).intValue == 9
+    func testAnyCodingKey() {
+        XCTAssertEqual(
+            AnyCodingKey(intValue: 9).intValue,
+            9
         )
-        #expect(
-            AnyCodingKey(intValue: 9).stringValue == "Index 9"
+        XCTAssertEqual(
+            AnyCodingKey(intValue: 9).stringValue,
+            "Index 9"
         )
-        #expect(
-            AnyCodingKey(stringValue: "fish").stringValue == "fish"
+        XCTAssertEqual(
+            AnyCodingKey(stringValue: "fish").stringValue,
+            "fish"
         )
     }
 
-    @Test
-    func nilEncodingStrategy_SingleContainer() throws {
+    func testNilEncodingStrategy_SingleContainer() {
         let encoder = KeyValueEncoder()
 
         encoder.nilEncodingStrategy = .removed
-        #expect(
-            try encoder.encode(Int?.none) == nil
+        XCTAssertNil(
+            try encoder.encode(Int?.none)
         )
 
         encoder.nilEncodingStrategy = .default
-        #expect(
-            try encoder.encode(Int?.none) != nil
+        XCTAssertNotNil(
+            try encoder.encode(Int?.none)
         )
-        #expect(
-            try encoder.encode(Int?.none) as? Int? == .none
+        XCTAssertEqual(
+            try encoder.encode(Int?.none) as? Int?,
+            .none
         )
 
         encoder.nilEncodingStrategy = .stringNull
-        #expect(
-            try encoder.encode(Int?.none) as? String == "$null"
+        XCTAssertEqual(
+            try encoder.encode(Int?.none) as? String,
+            "$null"
         )
 
         encoder.nilEncodingStrategy = .nsNull
-        #expect(
+        XCTAssertTrue(
             try encoder.encode(Int?.none) is NSNull
         )
     }
 
-    @Test
-    func nilEncodingStrategy_UnkeyedContainer() throws {
+    func testNilEncodingStrategy_UnkeyedContainer() {
         let encoder = KeyValueEncoder()
 
         encoder.nilEncodingStrategy = .removed
-        #expect(
-            try encoder.encode([1, 2, Int?.none, 4]) as? [Int] == [
-                1, 2, 4
-            ]
+        XCTAssertEqual(
+            try encoder.encode([1, 2, Int?.none, 4]) as? [Int],
+            [1, 2, 4]
         )
 
         encoder.nilEncodingStrategy = .default
-        #expect(
-            try encoder.encode([1, 2, Int?.none, 4]) as? [Int?] == [
-                1, 2, nil, 4
-            ]
+        XCTAssertEqual(
+            try encoder.encode([1, 2, Int?.none, 4]) as? [Int?],
+            [1, 2, nil, 4]
         )
 
         encoder.nilEncodingStrategy = .stringNull
-        #expect(
-            try encoder.encode([1, Int?.none, 3, 4]) as? NSArray == [
-                1, "$null", 3, 4
-            ]
+        XCTAssertEqual(
+            try encoder.encode([1, Int?.none, 3, 4]) as? NSArray,
+            [1, "$null", 3, 4]
         )
 
         encoder.nilEncodingStrategy = .nsNull
-        #expect(
-            try encoder.encode([1, 2, 3, Int?.none]) as? NSArray == [
-                1, 2, 3, NSNull()
-            ]
+        XCTAssertEqual(
+            try encoder.encode([1, 2, 3, Int?.none]) as? NSArray,
+            [1, 2, 3, NSNull()]
         )
     }
 
-    @Test
-    func nilEncodingStrategy_KeyedContainer() throws {
-        #expect(
+    func testNilEncodingStrategy_KeyedContainer() {
+        XCTAssertEqual(
             try KeyValueEncoder.encodeKeyedValue(keyedBy: AnyCodingKey.self, nilEncodingStrategy: .removed) {
                 try $0.encodeNil(forKey: "fish")
                 try $0.encode(Null(), forKey: "chips")
-            }.getValue() as? NSDictionary == [:]
+            }.getValue() as? NSDictionary,
+            [:]
         )
-        #expect(
+        XCTAssertEqual(
             try KeyValueEncoder.encodeKeyedValue(keyedBy: AnyCodingKey.self, nilEncodingStrategy: .default) {
                 try $0.encodeNil(forKey: "fish")
                 try $0.encode(Null(), forKey: "chips")
-            }.getValue() as? NSDictionary == [
+            }.getValue() as? NSDictionary,
+            [
                 "fish": String?.none as Any,
                 "chips": String?.none as Any
             ]
         )
-        #expect(
+        XCTAssertEqual(
             try KeyValueEncoder.encodeKeyedValue(keyedBy: AnyCodingKey.self, nilEncodingStrategy: .stringNull) {
                 try $0.encodeNil(forKey: "fish")
                 try $0.encode(Null(), forKey: "chips")
-            }.getValue() as? NSDictionary == [
+            }.getValue() as? NSDictionary,
+            [
                 "fish": "$null",
                 "chips": "$null",
             ]
         )
-        #expect(
+        XCTAssertEqual(
             try KeyValueEncoder.encodeKeyedValue(keyedBy: AnyCodingKey.self, nilEncodingStrategy: .nsNull) {
                 try $0.encodeNil(forKey: "fish")
                 try $0.encode(Null(), forKey: "chips")
-            }.getValue() as? NSDictionary == [
+            }.getValue() as? NSDictionary,
+            [
                 "fish": NSNull(),
                 "chips": NSNull(),
             ]
@@ -637,31 +640,28 @@ struct KeyValueEncodedTests {
     }
 
     #if !os(WASI)
-    func plistCompatibleEncoder() throws {
+    func testPlistCompatibleEncoder() throws {
         let keyValueAny = try KeyValueEncoder.makePlistCompatible().encode([1, 2, Int?.none, 4])
-        #expect(
-            try PropertyListDecoder.decodeAny([Int?].self, from: keyValueAny) == [
-                1, 2, Int?.none, 4
-            ]
+        XCTAssertEqual(
+            try PropertyListDecoder.decodeAny([Int?].self, from: keyValueAny),
+            [1, 2, Int?.none, 4]
         )
     }
     #endif
 
-    @Test
-    func encoder_Encodes_Dates() throws {
+    func testEncoder_Encodes_Dates() {
         let date = Date()
-        #expect(
-            try KeyValueEncoder().encode(date) as? Date == date
+        XCTAssertEqual(
+            try KeyValueEncoder().encode(date) as? Date,
+            date
         )
     }
 
-    @Test
-    func jsonCompatibleEncoder() throws {
+    func testJSONCompatibleEncoder() throws {
         let keyValueAny = try KeyValueEncoder.makeJSONCompatible().encode([1, 2, Int?.none, 4])
-        #expect(
-            try JSONDecoder.decodeAny([Int?].self, from: keyValueAny) == [
-                1, 2, Int?.none, 4
-            ]
+        XCTAssertEqual(
+            try JSONDecoder.decodeAny([Int?].self, from: keyValueAny),
+            [1, 2, Int?.none, 4]
         )
     }
 }

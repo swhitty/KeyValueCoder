@@ -1,5 +1,5 @@
 //
-//  UserDefaults+CodableTests.swift
+//  UserDefaults+CodableXCTests.swift
 //  KeyValueCoder
 //
 //  Created by Simon Whitty on 23/17/2023.
@@ -29,7 +29,7 @@
 //  SOFTWARE.
 //
 
-#if canImport(Testing)
+#if !canImport(Testing)
 @testable import KeyValueCoder
 
 import Foundation

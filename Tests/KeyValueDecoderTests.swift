@@ -1,6 +1,6 @@
 //
 //  KeyValueDecoderTests.swift
-//  DictionaryDecoder
+//  KeyValueCoder
 //
 //  Created by Simon Whitty on 16/17/2023.
 //  Copyright 2023 Simon Whitty
@@ -29,48 +29,49 @@
 //  SOFTWARE.
 //
 
+#if canImport(Testing)
 @testable import KeyValueCoder
 
-import XCTest
+import Foundation
+import Testing
 
-final class KeyValueDecoderTests: XCTestCase {
+struct KeyValueDecoderTests {
 
-    func testDecodes_String() {
+    @Test
+    func decodes_String() throws {
         let decoder = KeyValueDecoder()
 
-        XCTAssertEqual(
-            try decoder.decode(String.self, from: "Shrimp"),
-            "Shrimp"
+        #expect(
+            try decoder.decode(String.self, from: "Shrimp") == "Shrimp"
         )
-        XCTAssertThrowsError(
+        #expect(throws: (any Error).self) {
             try decoder.decode(String.self, from: Int16.max)
-        )
+        }
     }
 
-    func testDecodes_RawRepresentable() {
+    @Test
+    func decodes_RawRepresentable() throws {
         let decoder = KeyValueDecoder()
 
-        XCTAssertEqual(
-            try decoder.decode(Seafood.self, from: "fish"),
-            .fish
+        #expect(
+            try decoder.decode(Seafood.self, from: "fish") == .fish
         )
-        XCTAssertEqual(
-            try decoder.decode(Seafood.self, from: "chips"),
-            .chips
+        #expect(
+            try decoder.decode(Seafood.self, from: "chips") == .chips
         )
-        XCTAssertEqual(
-            try decoder.decode([Seafood].self, from: ["fish", "chips"]),
-            [.fish, .chips]
+        #expect(
+            try decoder.decode([Seafood].self, from: ["fish", "chips"]) == [.fish, .chips]
         )
-        XCTAssertThrowsError(
+        #expect(throws: (any Error).self) {
             try decoder.decode(Seafood.self, from: "invalid")
-        )
-        XCTAssertThrowsError(
+        }
+        #expect(throws: (any Error).self) {
             try decoder.decode(Seafood.self, from: 10)
-        )
+        }
     }
 
-    func testDecodes_NestedType() {
+    @Test
+    func decodes_NestedType() throws {
         let decoder = KeyValueDecoder()
         let dictionary: [String: Any] = [
             "id": 1,
@@ -80,529 +81,485 @@ final class KeyValueDecoderTests: XCTestCase {
                     "right": ["id": 6]],
         ]
 
-        XCTAssertEqual(
-            try decoder.decode(Node.self, from: dictionary),
-            Node(id: 1,
-                 name: "root",
-                 descendents: [Node(id: 2), Node(id: 3)],
-                 related: ["left": Node(id: 4, descendents: [Node(id: 5)]),
-                           "right": Node(id: 6)]
+        #expect(
+            try decoder.decode(Node.self, from: dictionary) == Node(
+                id: 1,
+                name: "root",
+                descendents: [Node(id: 2), Node(id: 3)],
+                related: ["left": Node(id: 4, descendents: [Node(id: 5)]),
+                          "right": Node(id: 6)]
             )
         )
 
-        XCTAssertThrowsError(
+        #expect(throws: (any Error).self) {
             try decoder.decode(Node.self, from: [String: Any]())
-        )
+        }
     }
 
-    func testDecodes_Ints() {
+    @Test
+    func decodes_Ints() throws {
         let decoder = KeyValueDecoder()
 
-        XCTAssertEqual(
-            try decoder.decode(Int16.self, from: Int16.max),
-            Int16.max
+        #expect(
+            try decoder.decode(Int16.self, from: Int16.max) == Int16.max
         )
-        XCTAssertEqual(
-            try decoder.decode(Int16.self, from: UInt16(10)),
-            10
+        #expect(
+            try decoder.decode(Int16.self, from: UInt16(10)) == 10
         )
-        XCTAssertEqual(
-            try decoder.decode(Int16.self, from: NSNumber(10)),
-            10
+        #expect(
+            try decoder.decode(Int16.self, from: NSNumber(10)) == 10
         )
-        XCTAssertEqual(
-            try decoder.decode(Int16.self, from: 10.0),
-            10
+        #expect(
+            try decoder.decode(Int16.self, from: 10.0) == 10
         )
-        XCTAssertEqual(
-            try decoder.decode(Int16.self, from: NSNumber(10.0)),
-            10
+        #expect(
+            try decoder.decode(Int16.self, from: NSNumber(10.0)) == 10
         )
-        XCTAssertThrowsError(
+        #expect(throws: (any Error).self) {
             try decoder.decode(Int8.self, from: Int16.max)
-        )
-        XCTAssertThrowsError(
+        }
+        #expect(throws: (any Error).self) {
             try decoder.decode(Int8.self, from: NSNumber(value: Int16.max))
-        )
-        XCTAssertThrowsError(
+        }
+        #expect(throws: (any Error).self) {
             try decoder.decode(Int16.self, from: UInt16.max)
-        )
-        XCTAssertThrowsError(
+        }
+        #expect(throws: (any Error).self) {
             try decoder.decode(Int16.self, from: Optional<Int16>.none as Any)
-        )
-        XCTAssertThrowsError(
+        }
+        #expect(throws: (any Error).self) {
             try decoder.decode(Int16.self, from: NSNull())
-        )
-        XCTAssertThrowsError(
+        }
+        #expect(throws: (any Error).self) {
             try decoder.decode(Int8.self, from: 10.1)
-        )
-        XCTAssertThrowsError(
+        }
+        #expect(throws: (any Error).self) {
             try decoder.decode(Int8.self, from: NSNumber(10.1))
-        )
-        XCTAssertThrowsError(
+        }
+        #expect(throws: (any Error).self) {
             try decoder.decode(Int8.self, from: Double.nan)
-        )
-        XCTAssertThrowsError(
+        }
+        #expect(throws: (any Error).self) {
             try decoder.decode(Int8.self, from: Double.infinity)
-        )
+        }
     }
 
-    func testDecodesRounded_Ints() {
+    @Test
+    func decodesRounded_Ints() throws {
         let decoder = KeyValueDecoder()
         decoder.intDecodingStrategy = .rounding(rule: .toNearestOrAwayFromZero)
 
-        XCTAssertEqual(
-            try decoder.decode(Int16.self, from: 10.0),
-            10
+        #expect(
+            try decoder.decode(Int16.self, from: 10.0) == 10
         )
-        XCTAssertEqual(
-            try decoder.decode(Int16.self, from: 10.00001),
-            10
+        #expect(
+            try decoder.decode(Int16.self, from: 10.00001) == 10
         )
-        XCTAssertEqual(
-            try decoder.decode(Int16.self, from: 10.1),
-            10
+        #expect(
+            try decoder.decode(Int16.self, from: 10.1) == 10
         )
-        XCTAssertEqual(
-            try decoder.decode(Int16.self, from: 10.5),
-            11
+        #expect(
+            try decoder.decode(Int16.self, from: 10.5) == 11
         )
-        XCTAssertEqual(
-            try decoder.decode(Int16.self, from: -10.5),
-            -11
+        #expect(
+            try decoder.decode(Int16.self, from: -10.5) == -11
         )
-        XCTAssertEqual(
-            try decoder.decode(Int16.self, from: NSNumber(10.5)),
-            11
+        #expect(
+            try decoder.decode(Int16.self, from: NSNumber(10.5)) == 11
         )
-        XCTAssertEqual(
-            try decoder.decode([Int].self, from: [10.1, -20.9, 50.00001]),
-            [10, -21, 50]
+        #expect(
+            try decoder.decode([Int].self, from: [10.1, -20.9, 50.00001]) == [10, -21, 50]
         )
 
-        XCTAssertThrowsError(
+        #expect(throws: (any Error).self) {
             try decoder.decode(Int8.self, from: Double(Int16.max))
-        )
-        XCTAssertThrowsError(
+        }
+        #expect(throws: (any Error).self) {
             try decoder.decode(Int8.self, from: NSNumber(value: Double(Int16.max)))
-        )
-        XCTAssertThrowsError(
+        }
+        #expect(throws: (any Error).self) {
             try decoder.decode(Int16.self, from: Optional<Double>.none as Any)
-        )
-        XCTAssertThrowsError(
+        }
+        #expect(throws: (any Error).self) {
             try decoder.decode(Int16.self, from: NSNull())
-        )
-        XCTAssertThrowsError(
+        }
+        #expect(throws: (any Error).self) {
             try decoder.decode(Int16.self, from: Double.nan)
-        )
-        XCTAssertThrowsError(
+        }
+        #expect(throws: (any Error).self) {
             try decoder.decode(Int16.self, from: Double.infinity)
-        )
+        }
     }
 
-    func testDecodes_UInts() {
+    @Test
+    func decodes_UInts() throws {
         let decoder = KeyValueDecoder()
 
-        XCTAssertEqual(
-            try decoder.decode(UInt16.self, from: UInt16.max),
-            UInt16.max
+        #expect(
+            try decoder.decode(UInt16.self, from: UInt16.max) == UInt16.max
         )
-        XCTAssertEqual(
-            try decoder.decode(UInt8.self, from: NSNumber(10)),
-            10
+        #expect(
+            try decoder.decode(UInt8.self, from: NSNumber(10)) == 10
         )
-        XCTAssertEqual(
-            try decoder.decode(UInt8.self, from: 10.0),
-            10
+        #expect(
+            try decoder.decode(UInt8.self, from: 10.0) == 10
         )
-        XCTAssertEqual(
-            try decoder.decode(UInt8.self, from: NSNumber(10.0)),
-            10
+        #expect(
+            try decoder.decode(UInt8.self, from: NSNumber(10.0)) == 10
         )
-        XCTAssertThrowsError(
+        #expect(throws: (any Error).self) {
             try decoder.decode(UInt8.self, from: UInt16.max)
-        )
-        XCTAssertThrowsError(
+        }
+        #expect(throws: (any Error).self) {
             try decoder.decode(UInt8.self, from: NSNumber(-10))
-        )
-        XCTAssertThrowsError(
+        }
+        #expect(throws: (any Error).self) {
             try decoder.decode(UInt8.self, from: Optional<UInt8>.none as Any)
-        )
-        XCTAssertThrowsError(
+        }
+        #expect(throws: (any Error).self) {
             try decoder.decode(UInt8.self, from: NSNull())
-        )
-        XCTAssertThrowsError(
+        }
+        #expect(throws: (any Error).self) {
             try decoder.decode(UInt8.self, from: 10.1)
-        )
-        XCTAssertThrowsError(
+        }
+        #expect(throws: (any Error).self) {
             try decoder.decode(UInt8.self, from: NSNumber(10.1))
-        )
-        XCTAssertThrowsError(
+        }
+        #expect(throws: (any Error).self) {
             try decoder.decode(UInt16.self, from: Double.nan)
-        )
-        XCTAssertThrowsError(
+        }
+        #expect(throws: (any Error).self) {
             try decoder.decode(UInt16.self, from: Double.infinity)
-        )
+        }
     }
 
-    func testDecodesRounded_UInts() {
+    @Test
+    func decodesRounded_UInts() throws {
         let decoder = KeyValueDecoder()
         decoder.intDecodingStrategy = .rounding(rule: .toNearestOrAwayFromZero)
 
-        XCTAssertEqual(
-            try decoder.decode(UInt16.self, from: 10.0),
-            10
+        #expect(
+            try decoder.decode(UInt16.self, from: 10.0) == 10
         )
-        XCTAssertEqual(
-            try decoder.decode(UInt16.self, from: 10.00001),
-            10
+        #expect(
+            try decoder.decode(UInt16.self, from: 10.00001) == 10
         )
-        XCTAssertEqual(
-            try decoder.decode(UInt16.self, from: 10.1),
-            10
+        #expect(
+            try decoder.decode(UInt16.self, from: 10.1) == 10
         )
-        XCTAssertEqual(
-            try decoder.decode(UInt16.self, from: 10.5),
-            11
+        #expect(
+            try decoder.decode(UInt16.self, from: 10.5) == 11
         )
-        XCTAssertEqual(
-            try decoder.decode(UInt16.self, from: NSNumber(10.5)),
-            11
+        #expect(
+            try decoder.decode(UInt16.self, from: NSNumber(10.5)) == 11
         )
-        XCTAssertEqual(
-            try decoder.decode([UInt].self, from: [10.1, 20.9, 50.00001]),
-            [10, 21, 50]
+        #expect(
+            try decoder.decode([UInt].self, from: [10.1, 20.9, 50.00001]) == [10, 21, 50]
         )
 
-        XCTAssertThrowsError(
+        #expect(throws: (any Error).self) {
             try decoder.decode(UInt8.self, from: Double(Int16.max))
-        )
-        XCTAssertThrowsError(
+        }
+        #expect(throws: (any Error).self) {
             try decoder.decode(UInt8.self, from: NSNumber(value: Double(Int16.max)))
-        )
-        XCTAssertThrowsError(
+        }
+        #expect(throws: (any Error).self) {
             try decoder.decode(UInt16.self, from: Double(-1))
-        )
-        XCTAssertThrowsError(
+        }
+        #expect(throws: (any Error).self) {
             try decoder.decode(UInt16.self, from: Optional<Double>.none as Any)
-        )
-        XCTAssertThrowsError(
+        }
+        #expect(throws: (any Error).self) {
             try decoder.decode(UInt16.self, from: NSNull())
-        )
-        XCTAssertThrowsError(
+        }
+        #expect(throws: (any Error).self) {
             try decoder.decode(UInt16.self, from: Double.nan)
-        )
-        XCTAssertThrowsError(
+        }
+        #expect(throws: (any Error).self) {
             try decoder.decode(UInt16.self, from: Double.infinity)
-        )
+        }
     }
 
-    func testDecodes_Float(){
+    @Test
+    func decodes_Float() throws {
         let decoder = KeyValueDecoder()
 
-        XCTAssertEqual(
-            try decoder.decode(Float.self, from: 10),
-            10
+        #expect(
+            try decoder.decode(Float.self, from: 10) == 10
         )
-        XCTAssertEqual(
-            try decoder.decode(Float.self, from: -100.5),
-            -100.5
+        #expect(
+            try decoder.decode(Float.self, from: -100.5) == -100.5
         )
-        XCTAssertEqual(
-            try decoder.decode(Float.self, from: UInt8.max),
-            255
+        #expect(
+            try decoder.decode(Float.self, from: UInt8.max) == 255
         )
-        XCTAssertEqual(
-            try decoder.decode(Float.self, from: UInt64.max),
-            Float(UInt64.max)
+        #expect(
+            try decoder.decode(Float.self, from: UInt64.max) == Float(UInt64.max)
         )
-        XCTAssertEqual(
-            try decoder.decode(Float.self, from: NSNumber(20)),
-            20
+        #expect(
+            try decoder.decode(Float.self, from: NSNumber(20)) == 20
         )
-        XCTAssertEqual(
-            try decoder.decode(Float.self, from: NSNumber(value: 50.5)),
-            50.5
+        #expect(
+            try decoder.decode(Float.self, from: NSNumber(value: 50.5)) == 50.5
         )
-        XCTAssertEqual(
-            try decoder.decode(Float.self, from: Decimal.pi),
-            Float((Decimal.pi as NSNumber).doubleValue)
+        #expect(
+            try decoder.decode(Float.self, from: Decimal.pi) == Float((Decimal.pi as NSNumber).doubleValue)
         )
-        XCTAssertEqual(
-            try decoder.decode(Float.self, from: UInt.max),
-            Float(UInt.max)
+        #expect(
+            try decoder.decode(Float.self, from: UInt.max) == Float(UInt.max)
         )
-        XCTAssertThrowsError(
+        #expect(throws: (any Error).self) {
             try decoder.decode(Float.self, from: true)
-        )
+        }
     }
 
-    func testDecodes_Double(){
+    @Test
+    func decodes_Double() throws {
         let decoder = KeyValueDecoder()
 
-        XCTAssertEqual(
-            try decoder.decode(Double.self, from: 10),
-            10
+        #expect(
+            try decoder.decode(Double.self, from: 10) == 10
         )
-        XCTAssertEqual(
-            try decoder.decode(Double.self, from: -100.5),
-            -100.5
+        #expect(
+            try decoder.decode(Double.self, from: -100.5) == -100.5
         )
-        XCTAssertEqual(
-            try decoder.decode(Double.self, from: UInt8.max),
-            255
+        #expect(
+            try decoder.decode(Double.self, from: UInt8.max) == 255
         )
-        XCTAssertEqual(
-            try decoder.decode(Double.self, from: UInt64.max),
-            Double(UInt64.max)
+        #expect(
+            try decoder.decode(Double.self, from: UInt64.max) == Double(UInt64.max)
         )
-        XCTAssertEqual(
-            try decoder.decode(Double.self, from: NSNumber(20)),
-            20
+        #expect(
+            try decoder.decode(Double.self, from: NSNumber(20)) == 20
         )
-        XCTAssertEqual(
-            try decoder.decode(Double.self, from: NSNumber(value: 50.5)),
-            50.5
+        #expect(
+            try decoder.decode(Double.self, from: NSNumber(value: 50.5)) == 50.5
         )
-        XCTAssertEqual(
-            try decoder.decode(Double.self, from: Decimal.pi),
-            (Decimal.pi as NSNumber).doubleValue
+        #expect(
+            try decoder.decode(Double.self, from: Decimal.pi) == (Decimal.pi as NSNumber).doubleValue
         )
-        XCTAssertEqual(
-            try decoder.decode(Double.self, from: UInt.max),
-            Double(UInt.max)
+        #expect(
+            try decoder.decode(Double.self, from: UInt.max) == Double(UInt.max)
         )
-        XCTAssertThrowsError(
+        #expect(throws: (any Error).self) {
             try decoder.decode(Double.self, from: true)
-        )
+        }
     }
 
-    func testDecodes_Decimal() {
+    @Test
+    func decodes_Decimal() throws {
         let decoder = KeyValueDecoder()
 
-        XCTAssertEqual(
-            try decoder.decode(Decimal.self, from: 10),
-            10
+        #expect(
+            try decoder.decode(Decimal.self, from: 10) == 10
         )
-        XCTAssertEqual(
-            try decoder.decode(Decimal.self, from: -100.5),
-            -100.5
+        #expect(
+            try decoder.decode(Decimal.self, from: -100.5) == -100.5
         )
-        XCTAssertEqual(
-            try decoder.decode(Decimal.self, from: UInt8.max),
-            255
+        #expect(
+            try decoder.decode(Decimal.self, from: UInt8.max) == 255
         )
-        XCTAssertEqual(
-            try decoder.decode(Decimal.self, from: NSNumber(20)),
-            20
+        #expect(
+            try decoder.decode(Decimal.self, from: NSNumber(20)) == 20
         )
-        XCTAssertEqual(
-            try decoder.decode(Decimal.self, from: NSNumber(value: 50.5)),
-            50.5
+        #expect(
+            try decoder.decode(Decimal.self, from: NSNumber(value: 50.5)) == 50.5
         )
-        XCTAssertEqual(
-            try decoder.decode(Decimal.self, from: Decimal.pi),
-            .pi
+        #expect(
+            try decoder.decode(Decimal.self, from: Decimal.pi) == .pi
         )
-        XCTAssertEqual(
-            try decoder.decode(Decimal.self, from: UInt.max),
-            Decimal(UInt.max)
+        #expect(
+            try decoder.decode(Decimal.self, from: UInt.max) == Decimal(UInt.max)
         )
-        XCTAssertThrowsError(
+        #expect(throws: (any Error).self) {
             try decoder.decode(Decimal.self, from: true)
-        )
+        }
     }
 
-    func testDecodes_URL() {
+    @Test
+    func decodes_URL() throws {
         let decoder = KeyValueDecoder()
 
-        XCTAssertEqual(
-            try decoder.decode(URL.self, from: "fish.com"),
-            URL(string: "fish.com")
+        #expect(
+            try decoder.decode(URL.self, from: "fish.com") == URL(string: "fish.com")
         )
-        XCTAssertEqual(
-            try decoder.decode(AllTypes.self, from: ["tURL": "fish.com"]),
-            AllTypes(tURL: URL(string: "fish.com")!)
-        )
-
-        XCTAssertEqual(
-            try decoder.decode(URL.self, from: "fish.com"),
-            URL(string: "fish.com")
-        )
-        XCTAssertEqual(
-            try decoder.decode(URL.self, from: URL(string: "fish.com")!),
-            URL(string: "fish.com")
+        #expect(
+            try decoder.decode(AllTypes.self, from: ["tURL": "fish.com"]) == AllTypes(
+                tURL: URL(string: "fish.com")!
+            )
         )
 
-        XCTAssertThrowsError(
+        #expect(
+            try decoder.decode(URL.self, from: "fish.com") == URL(string: "fish.com")
+        )
+        #expect(
+            try decoder.decode(URL.self, from: URL(string: "fish.com")!) == URL(string: "fish.com")
+        )
+
+        #expect(throws: (any Error).self) {
             try decoder.decode(URL.self, from: "")
-        )
+        }
     }
 
-    func testDecodes_Date() {
+    @Test
+    func decodes_Date() throws {
         let decoder = KeyValueDecoder()
 
         let date = Date(timeIntervalSinceReferenceDate: 0)
-        XCTAssertEqual(
-            try decoder.decode(Date.self, from: date),
-            date
+        #expect(
+            try decoder.decode(Date.self, from: date) == date
         )
     }
 
-    func testDecodes_Data() {
+    @Test
+    func decodes_Data() throws {
         let decoder = KeyValueDecoder()
 
-        XCTAssertEqual(
-            try decoder.decode(Data.self, from: Data([0x01])),
-            Data([0x01])
+        #expect(
+            try decoder.decode(Data.self, from: Data([0x01])) == Data([0x01])
         )
     }
 
-    func testDecodes_Null() {
+    @Test
+    func decodes_Null() throws {
         let decoder = KeyValueDecoder()
         decoder.nilDecodingStrategy = .default
 
-        XCTAssertThrowsError(
+        #expect(throws: (any Error).self) {
             try decoder.decode(String?.self, from: NSNull())
-        )
+        }
 
         decoder.nilDecodingStrategy = .nsNull
-        XCTAssertEqual(
-            try decoder.decode(String?.self, from: NSNull()),
-            nil
+        #expect(
+            try decoder.decode(String?.self, from: NSNull()) == nil
         )
     }
 
-    func testDecodes_Optionals() {
-        XCTAssertEqual(
-            try KeyValueDecoder.decode(String?.self, from: String?.some("fish")),
-            "fish"
+    @Test
+    func decodes_Optionals() throws {
+        #expect(
+            try KeyValueDecoder.decode(String?.self, from: String?.some("fish")) == "fish"
         )
-        XCTAssertEqual(
-            try KeyValueDecoder.decode(String?.self, from: String?.none),
-            nil
+        #expect(
+            try KeyValueDecoder.decode(String?.self, from: String?.none) == nil
         )
-        XCTAssertThrowsError(
+        #expect(throws: (any Error).self) {
             try KeyValueDecoder.decode(String.self, from: String?.none)
-        )
+        }
     }
 
-    func testDecodes_NestedUnkeyed() {
+    @Test
+    func decodes_NestedUnkeyed() throws {
         let decoder = KeyValueDecoder()
 
-        XCTAssertEqual(
-            try decoder.decode([[Seafood]].self, from: [["fish", "chips"], ["fish"]]),
-            [[.fish, .chips], [.fish]]
+        #expect(
+            try decoder.decode([[Seafood]].self, from: [["fish", "chips"], ["fish"]]) == [
+                [.fish, .chips], [.fish]
+            ]
         )
     }
 
-    func testDecodes_UnkeyedOptionals() {
+    @Test
+    func decodes_UnkeyedOptionals() throws {
         let decoder = KeyValueDecoder()
 
         decoder.nilDecodingStrategy = .removed
-        XCTAssertEqual(
-            try decoder.decode([Int?].self, from: [1, 2, 3, 4]),
-            [1, 2, 3, 4]
+        #expect(
+            try decoder.decode([Int?].self, from: [1, 2, 3, 4]) == [1, 2, 3, 4]
         )
 
         decoder.nilDecodingStrategy = .default
-        XCTAssertEqual(
-            try decoder.decode([Int?].self, from: [1, 2, Int?.none, 4]),
-            [1, 2, nil, 4]
+        #expect(
+            try decoder.decode([Int?].self, from: [1, 2, Int?.none, 4]) == [1, 2, nil, 4]
         )
 
         decoder.nilDecodingStrategy = .stringNull
-        XCTAssertEqual(
-            try decoder.decode([Int?].self, from: [1, "$null", 3, 4] as [Any]),
-            [1, nil, 3, 4]
+        #expect(
+            try decoder.decode([Int?].self, from: [1, "$null", 3, 4] as [Any]) == [1, nil, 3, 4]
         )
 
         decoder.nilDecodingStrategy = .nsNull
-        XCTAssertEqual(
-            try decoder.decode([Int?].self, from: [1, 2, 3, NSNull()] as [Any]),
-            [1, 2, 3, nil]
+        #expect(
+            try decoder.decode([Int?].self, from: [1, 2, 3, NSNull()] as [Any]) == [1, 2, 3, nil]
         )
     }
 
-    func testDecodes_KeyedBool() {
+    @Test
+    func decodes_KeyedBool() throws {
         let decoder = KeyValueDecoder()
 
-        XCTAssertEqual(
-            try decoder.decode(AllTypes.self, from: ["tBool": true]),
-            AllTypes(
-                tBool: true
-            )
+        #expect(
+            try decoder.decode(AllTypes.self, from: ["tBool": true]) == AllTypes(tBool: true)
         )
-        XCTAssertEqual(
-            try decoder.decode(AllTypes.self, from: ["tBool": false]),
-            AllTypes(
-                tBool: false
-            )
+        #expect(
+            try decoder.decode(AllTypes.self, from: ["tBool": false]) == AllTypes(tBool: false)
         )
     }
 
-    func testKeyedContainer_Decodes_NestedKeyedContainer() {
-        XCTAssertEqual(
+    @Test
+    func keyedContainer_Decodes_NestedKeyedContainer() throws {
+        #expect(
             try KeyValueDecoder.decodeValue(from: ["id": 1, "rel": ["left": ["id": 2]]], keyedBy: Node.CodingKeys.self) { container in
                 let nested = try container.nestedContainer(keyedBy: Node.RelatedKeys.self, forKey: .related)
                 return try nested.decode(Node.self, forKey: .left)
-            },
-            Node(id: 2)
+            } == Node(id: 2)
         )
     }
 
-    func testKeyedContainer_Decodes_NestedUnkeyedContainer() {
-        XCTAssertEqual(
+    @Test
+    func keyedContainer_Decodes_NestedUnkeyedContainer() throws {
+        #expect(
             try KeyValueDecoder.decodeValue(from: ["id": 1, "desc": [["id": 2]]], keyedBy: Node.CodingKeys.self) { container in
                 var nested = try container.nestedUnkeyedContainer(forKey: .descendents)
                 return try nested.decode(Node.self)
-            },
-            Node(id: 2)
+            } == Node(id: 2)
         )
     }
 
-    func testKeyedContainer_ThrowsError_WhenKeyIsUknown() {
-        XCTAssertThrowsError(
+    @Test
+    func keyedContainer_ThrowsError_WhenKeyIsUknown() {
+        #expect(throws: (any Error).self) {
             try KeyValueDecoder.decodeValue(from: [:], keyedBy: Seafood.CodingKeys.self) { container in
                 try container.decode(Bool.self, forKey: .chips)
             }
-        )
+        }
     }
 
-    func testKeyedContainer_Decodes_SuperContainer() {
-        XCTAssertEqual(
+    @Test
+    func keyedContainer_Decodes_SuperContainer() throws {
+        #expect(
             try KeyValueDecoder.decodeValue(from: ["id": 1], keyedBy: Node.CodingKeys.self) { container in
                 try Node(from: container.superDecoder())
-            },
-            Node(id: 1)
+            } == Node(id: 1)
         )
     }
 
-    func testKeyedContainer_Decodes_NestedSuperContainer() {
-        XCTAssertEqual(
+    @Test
+    func keyedContainer_Decodes_NestedSuperContainer() throws {
+        #expect(
             try KeyValueDecoder.decodeValue(from: ["id": 1], keyedBy: Node.CodingKeys.self) { container in
                 try Int(from: container.superDecoder(forKey: .id))
-            },
-            1
+            } == 1
         )
     }
 
-    func testDecodes_KeyedRealNumbers() {
+    @Test
+    func decodes_KeyedRealNumbers() throws {
         let dict = [
             "tDouble": -10,
             "tFloat": 20.5
         ]
 
-        XCTAssertEqual(
-            try KeyValueDecoder.decode(AllTypes.self, from: dict),
-            AllTypes(
+        #expect(
+            try KeyValueDecoder.decode(AllTypes.self, from: dict) == AllTypes(
                 tDouble: -10,
                 tFloat: 20.5
             )
         )
     }
 
-    func testDecodes_KeyedInts() {
+    @Test
+    func decodes_KeyedInts() throws {
         let dict = [
             "tInt": 10,
             "tInt8": -20,
@@ -611,9 +568,8 @@ final class KeyValueDecoderTests: XCTestCase {
             "tInt64": 50
         ]
 
-        XCTAssertEqual(
-            try KeyValueDecoder.decode(AllTypes.self, from: dict),
-            AllTypes(
+        #expect(
+            try KeyValueDecoder.decode(AllTypes.self, from: dict) == AllTypes(
                 tInt: 10,
                 tInt8: -20,
                 tInt16: 30,
@@ -623,7 +579,8 @@ final class KeyValueDecoderTests: XCTestCase {
         )
     }
 
-    func testDecodes_KeyedUInts() {
+    @Test
+    func decodes_KeyedUInts() throws {
         let dict = [
             "tUInt": 10,
             "tUInt8": 20,
@@ -632,9 +589,8 @@ final class KeyValueDecoderTests: XCTestCase {
             "tUInt64": 50
         ]
 
-        XCTAssertEqual(
-            try KeyValueDecoder.decode(AllTypes.self, from: dict),
-            AllTypes(
+        #expect(
+            try KeyValueDecoder.decode(AllTypes.self, from: dict) == AllTypes(
                 tUInt: 10,
                 tUInt8: 20,
                 tUInt16: 30,
@@ -643,34 +599,30 @@ final class KeyValueDecoderTests: XCTestCase {
             )
         )
 
-        XCTAssertThrowsError(
+        #expect(throws: (any Error).self) {
             try KeyValueDecoder.decode(AllTypes.self, from: ["tUInt": -1])
-        )
+        }
     }
 
-    func testDecodes_UnkeyedInts() {
-        XCTAssertEqual(
-            try KeyValueDecoder.decode([Int].self, from: [-10, 20, 30, 40.0, -50.0]),
-            [-10, 20, 30, 40, -50]
+    @Test
+    func decodes_UnkeyedInts() throws {
+        #expect(
+            try KeyValueDecoder.decode([Int].self, from: [-10, 20, 30, 40.0, -50.0]) == [-10, 20, 30, 40, -50]
         )
-        XCTAssertEqual(
-            try KeyValueDecoder.decode([Int8].self, from: [10, -20, 30]),
-            [10, -20, 30]
+        #expect(
+            try KeyValueDecoder.decode([Int8].self, from: [10, -20, 30]) == [10, -20, 30]
         )
-        XCTAssertEqual(
-            try KeyValueDecoder.decode([Int16].self, from: [10, 20, -30]),
-            [10, 20, -30]
+        #expect(
+            try KeyValueDecoder.decode([Int16].self, from: [10, 20, -30]) == [10, 20, -30]
         )
-        XCTAssertEqual(
-            try KeyValueDecoder.decode([Int32].self, from: [-10, 20, 30]),
-            [-10, 20, 30]
+        #expect(
+            try KeyValueDecoder.decode([Int32].self, from: [-10, 20, 30]) == [-10, 20, 30]
         )
-        XCTAssertEqual(
-            try KeyValueDecoder.decode([Int64].self, from: [10, -20, 30]),
-            [10, -20, 30]
+        #expect(
+            try KeyValueDecoder.decode([Int64].self, from: [10, -20, 30]) == [10, -20, 30]
         )
 
-        XCTAssertEqual(
+        #expect(
             try KeyValueDecoder.decodeUnkeyedValue(from: [10, -20, 30, -40, 50]) { unkeyed in
                 try AllTypes(
                     tInt: unkeyed.decode(Int.self),
@@ -679,8 +631,7 @@ final class KeyValueDecoderTests: XCTestCase {
                     tInt32: unkeyed.decode(Int32.self),
                     tInt64: unkeyed.decode(Int64.self)
                 )
-            },
-            AllTypes(
+            } == AllTypes(
                 tInt: 10,
                 tInt8: -20,
                 tInt16: 30,
@@ -690,15 +641,18 @@ final class KeyValueDecoderTests: XCTestCase {
         )
     }
 
-    func testDecodes_UnkeyedDecimals() {
-        XCTAssertEqual(
-            try KeyValueDecoder.decode([Decimal].self, from: [Decimal(10), Double(20), Float(30), Int(10), UInt.max] as [Any]),
-            [10, 20, 30, 10, Decimal(UInt.max)]
+    @Test
+    func decodes_UnkeyedDecimals() throws {
+        #expect(
+            try KeyValueDecoder.decode([Decimal].self, from: [Decimal(10), Double(20), Float(30), Int(10), UInt.max] as [Any]) == [
+                10, 20, 30, 10, Decimal(UInt.max)
+            ]
         )
     }
 
-    func testDecodes_UnkeyedBool() {
-        XCTAssertEqual(
+    @Test
+    func decodes_UnkeyedBool() throws {
+        #expect(
             try KeyValueDecoder.decodeUnkeyedValue(from: [true, false, false, true]) { unkeyed in
                 try [
                     unkeyed.decode(Bool.self),
@@ -706,101 +660,110 @@ final class KeyValueDecoderTests: XCTestCase {
                     unkeyed.decode(Bool.self),
                     unkeyed.decode(Bool.self)
                 ]
-            },
-            [true, false, false, true]
+            } == [true, false, false, true]
         )
     }
 
-    func testDecodes_UnkeyedString() {
-        XCTAssertEqual(
+    @Test
+    func decodes_UnkeyedString() throws {
+        #expect(
             try KeyValueDecoder.decodeUnkeyedValue(from: ["fish", "chips"]) { unkeyed in
                 try [
                     unkeyed.decode(String.self),
                     unkeyed.decode(String.self)
                 ]
-            },
-            ["fish", "chips"]
+            } == ["fish", "chips"]
         )
     }
 
-    func testDecodes_UnkeyedFloat() {
-        XCTAssertEqual(
-            try KeyValueDecoder.decode([Float].self, from: [Double(5.5), Float(-0.5), Int(-10), UInt64.max] as [Any]),
-            [5.5, -0.5, -10.0, Float(UInt64.max)]
+    @Test
+    func decodes_UnkeyedFloat() throws {
+        #expect(
+            try KeyValueDecoder.decode([Float].self, from: [Double(5.5), Float(-0.5), Int(-10), UInt64.max] as [Any]) == [
+                5.5, -0.5, -10.0, Float(UInt64.max)
+            ]
         )
-        XCTAssertEqual(
-            try KeyValueDecoder.decode([Double].self, from: [Double(5.5), Float(-0.5), Int(-10), UInt64.max] as [Any]),
-            [5.5, -0.5, -10.0, Double(UInt64.max)]
+        #expect(
+            try KeyValueDecoder.decode([Double].self, from: [Double(5.5), Float(-0.5), Int(-10), UInt64.max] as [Any]) == [
+                5.5, -0.5, -10.0, Double(UInt64.max)
+            ]
         )
 
-        XCTAssertEqual(
+        #expect(
             try KeyValueDecoder.decodeUnkeyedValue(from: [5.5, -10]) { unkeyed in
                 try AllTypes(
                     tDouble: unkeyed.decode(Double.self),
                     tFloat: unkeyed.decode(Float.self)
                 )
-            },
-            AllTypes(
+            } == AllTypes(
                 tDouble: 5.5,
                 tFloat: -10.0
             )
         )
     }
 
-    func testDecodes_UnkeyedNil() {
+    @Test
+    func decodes_UnkeyedNil() throws {
         let decoder = KeyValueDecoder()
         decoder.nilDecodingStrategy = .default
 
-        XCTAssertEqual(
+        #expect(
             try KeyValueDecoder.decodeUnkeyedValue(from: [String?.none as Any, NSNull() as Any, -10 as Any]) { unkeyed in
                 try [
                     unkeyed.decodeNil(),
                     unkeyed.decodeNil(),
                     unkeyed.decodeNil()
                 ]
-            },
-            [true, false, false]
+            } == [
+                true, false, false
+            ]
         )
 
-        XCTAssertThrowsError(
+        #expect(throws: (any Error).self) {
             try KeyValueDecoder.decodeUnkeyedValue(from: []) { unkeyed in
                 try unkeyed.decodeNil()
             }
-        )
+        }
     }
 
-    func testDecodes_UnkeyedCount() {
-        XCTAssertEqual(
+    @Test
+    func decodes_UnkeyedCount() throws {
+        #expect(
             try KeyValueDecoder.decodeUnkeyedValue(from: [10, 20, 30, 40, 50]) { unkeyed in
                 unkeyed.count
-            },
-            5
+            } == 5
         )
     }
 
-    func testDecodes_UnkeyedUInts() {
-        XCTAssertEqual(
-            try KeyValueDecoder.decode([UInt].self, from: [10, 20, 30, 40.0]),
-            [10, 20, 30, 40]
+    @Test
+    func decodes_UnkeyedUInts() throws {
+        #expect(
+            try KeyValueDecoder.decode([UInt].self, from: [10, 20, 30, 40.0]) == [
+                10, 20, 30, 40
+            ]
         )
-        XCTAssertEqual(
-            try KeyValueDecoder.decode([UInt8].self, from: [10, 20, 30]),
-            [10, 20, 30]
+        #expect(
+            try KeyValueDecoder.decode([UInt8].self, from: [10, 20, 30]) == [
+                10, 20, 30
+            ]
         )
-        XCTAssertEqual(
-            try KeyValueDecoder.decode([UInt16].self, from: [10, 20, 30]),
-            [10, 20, 30]
+        #expect(
+            try KeyValueDecoder.decode([UInt16].self, from: [10, 20, 30]) == [
+                10, 20, 30
+            ]
         )
-        XCTAssertEqual(
-            try KeyValueDecoder.decode([UInt32].self, from: [10, 20, 30]),
-            [10, 20, 30]
+        #expect(
+            try KeyValueDecoder.decode([UInt32].self, from: [10, 20, 30]) == [
+                10, 20, 30
+            ]
         )
-        XCTAssertEqual(
-            try KeyValueDecoder.decode([UInt64].self, from: [10, UInt8(20), UInt64.max] as [Any]),
-            [10, 20, .max]
+        #expect(
+            try KeyValueDecoder.decode([UInt64].self, from: [10, UInt8(20), UInt64.max] as [Any]) == [
+                10, 20, .max
+            ]
         )
 
-        XCTAssertEqual(
+        #expect(
             try KeyValueDecoder.decodeUnkeyedValue(from: [10, 20, 30, 40, 50]) { unkeyed in
                 try AllTypes(
                     tUInt: unkeyed.decode(UInt.self),
@@ -809,8 +772,7 @@ final class KeyValueDecoderTests: XCTestCase {
                     tUInt32: unkeyed.decode(UInt32.self),
                     tUInt64: unkeyed.decode(UInt64.self)
                 )
-            },
-            AllTypes(
+            } == AllTypes(
                 tUInt: 10,
                 tUInt8: 20,
                 tUInt16: 30,
@@ -820,18 +782,19 @@ final class KeyValueDecoderTests: XCTestCase {
         )
     }
 
-    func testUnKeyedContainer_Decodes_NestedKeyedContainer() {
-        XCTAssertEqual(
+    @Test
+    func unKeyedContainer_Decodes_NestedKeyedContainer() throws {
+        #expect(
             try KeyValueDecoder.decodeUnkeyedValue(from: [["id": 1]]) { unkeyed in
                 let nested = try unkeyed.nestedContainer(keyedBy: Node.CodingKeys.self)
                 return try nested.decode(Int.self, forKey: .id)
-            },
-            1
+            } == 1
         )
     }
 
-    func testUnKeyedContainer_Decodes_NestedUnkeyedContainer() {
-        XCTAssertEqual(
+    @Test
+    func unKeyedContainer_Decodes_NestedUnkeyedContainer() throws {
+        #expect(
             try KeyValueDecoder.decodeUnkeyedValue(from: [[1, 2, 3]]) { unkeyed in
                 var nested = try unkeyed.nestedUnkeyedContainer()
                 return try [
@@ -839,13 +802,13 @@ final class KeyValueDecoderTests: XCTestCase {
                     nested.decode(Int.self),
                     nested.decode(Int.self)
                 ]
-            },
-            [1, 2, 3]
+            } as [Int] == [1, 2, 3]
         )
     }
 
-    func testUnKeyedContainer_Decodes_SuperContainer() {
-        XCTAssertEqual(
+    @Test
+    func unKeyedContainer_Decodes_SuperContainer() throws {
+        #expect(
             try KeyValueDecoder.decodeUnkeyedValue(from: [1, 2, 3]) { unkeyed in
                 let decoder = try unkeyed.superDecoder()
                 var container = try decoder.unkeyedContainer()
@@ -854,158 +817,152 @@ final class KeyValueDecoderTests: XCTestCase {
                     container.decode(Int.self),
                     container.decode(Int.self)
                 ]
-            },
-            [1, 2, 3]
+            } as [Int] == [1, 2, 3]
         )
     }
 
-    func testNSNumber_Int64Value() {
-        XCTAssertEqual(NSNumber(10).getInt64Value(), 10)
-        XCTAssertEqual(NSNumber(-10).getInt64Value(), -10)
-        XCTAssertEqual(NSNumber(value: UInt8.max).getInt64Value(), Int64(UInt8.max))
-        XCTAssertEqual(NSNumber(value: UInt16.max).getInt64Value(), Int64(UInt16.max))
-        XCTAssertEqual(NSNumber(value: UInt32.max).getInt64Value(), Int64(UInt32.max))
-        XCTAssertEqual(NSNumber(value: UInt64.max).getInt64Value(), -1) // NSNumber stores unsigned values with sign in the next largest size but 64bit is largest size.
-        XCTAssertEqual(NSNumber(10.5).getInt64Value(), nil)
-        XCTAssertEqual(NSNumber(true).getInt64Value(), nil)
+    @Test
+    func nsNumber_Int64Value() throws {
+        #expect(NSNumber(10).getInt64Value() == 10)
+        #expect(NSNumber(-10).getInt64Value() == -10)
+        #expect(NSNumber(value: UInt8.max).getInt64Value() == Int64(UInt8.max))
+        #expect(NSNumber(value: UInt16.max).getInt64Value() == Int64(UInt16.max))
+        #expect(NSNumber(value: UInt32.max).getInt64Value() == Int64(UInt32.max))
+        #expect(NSNumber(value: UInt64.max).getInt64Value() == -1) // NSNumber stores unsigned values with sign in the next largest size but 64bit is largest size.
+        #expect(NSNumber(10.5).getInt64Value() == nil)
+        #expect(NSNumber(true).getInt64Value() == nil)
     }
 
-    func testNSNumber_DoubleValue() {
-        XCTAssertEqual(NSNumber(10.5).getDoubleValue(), 10.5)
-        XCTAssertEqual(NSNumber(value: Float(20)).getDoubleValue(), 20)
-        XCTAssertEqual(NSNumber(value: CGFloat(30.5)).getDoubleValue(), 30.5)
-        XCTAssertEqual(NSNumber(value: Float(40.5)).getDoubleValue(), 40.5)
-        XCTAssertEqual(NSNumber(value: Double.pi).getDoubleValue(), .pi)
-        XCTAssertEqual(NSNumber(-10).getDoubleValue(), nil)
-        XCTAssertEqual(NSNumber(true).getDoubleValue(), nil)
-        XCTAssertEqual((true as NSNumber).getDoubleValue(), nil)
+    @Test
+    func nsNumber_DoubleValue() throws {
+        #expect(NSNumber(10.5).getDoubleValue() == 10.5)
+        #expect(NSNumber(value: Float(20)).getDoubleValue() == 20)
+        #expect(NSNumber(value: CGFloat(30.5)).getDoubleValue() == 30.5)
+        #expect(NSNumber(value: Float(40.5)).getDoubleValue() == 40.5)
+        #expect(NSNumber(value: Double.pi).getDoubleValue() == .pi)
+        #expect(NSNumber(-10).getDoubleValue() == nil)
+        #expect(NSNumber(true).getDoubleValue() == nil)
+        #expect((true as NSNumber).getDoubleValue() == nil)
     }
 
-    func testDecodingErrors() {
-        AssertThrowsDecodingError(try KeyValueDecoder.decode(Seafood.self, from: 10)) { error in
-            XCTAssertEqual(error.debugDescription, "Expected String at SELF, found Int")
+    @Test
+    func decodingErrors() throws {
+        expectDecodingError(try KeyValueDecoder.decode(Seafood.self, from: 10)) { error in
+            #expect(error.debugDescription == "Expected String at SELF, found Int")
         }
-        AssertThrowsDecodingError(try KeyValueDecoder.decode(Int.self, from: NSNull())) { error in
-            XCTAssertEqual(error.debugDescription, "Expected BinaryInteger at SELF, found NSNull")
+        expectDecodingError(try KeyValueDecoder.decode(Int.self, from: NSNull())) { error in
+            #expect(error.debugDescription == "Expected BinaryInteger at SELF, found NSNull")
         }
-        AssertThrowsDecodingError(try KeyValueDecoder.decode(Int.self, from: Optional<Int>.none)) { error in
-            XCTAssertEqual(error.debugDescription, "Expected BinaryInteger at SELF, found nil")
+        expectDecodingError(try KeyValueDecoder.decode(Int.self, from: Optional<Int>.none)) { error in
+            #expect(error.debugDescription == "Expected BinaryInteger at SELF, found nil")
         }
-        AssertThrowsDecodingError(try KeyValueDecoder.decode([Int].self, from: [0, 1, true] as [Any])) { error in
-            XCTAssertEqual(error.debugDescription, "Expected BinaryInteger at SELF[2], found Bool")
+        expectDecodingError(try KeyValueDecoder.decode([Int].self, from: [0, 1, true] as [Any])) { error in
+            #expect(error.debugDescription == "Expected BinaryInteger at SELF[2], found Bool")
         }
-        AssertThrowsDecodingError(try KeyValueDecoder.decode(AllTypes.self, from: ["tArray": [["tString": 0]]] as [String: Any])) { error in
-            XCTAssertEqual(error.debugDescription, "Expected String at SELF.tArray[0].tString, found Int")
+        expectDecodingError(try KeyValueDecoder.decode(AllTypes.self, from: ["tArray": [["tString": 0]]] as [String: Any])) { error in
+            #expect(error.debugDescription == "Expected String at SELF.tArray[0].tString, found Int")
         }
-        AssertThrowsDecodingError(try KeyValueDecoder.decode(AllTypes.self, from: ["tArray": [["tString": 0]]] as [String: Any])) { error in
-            XCTAssertEqual(error.debugDescription, "Expected String at SELF.tArray[0].tString, found Int")
+        expectDecodingError(try KeyValueDecoder.decode(AllTypes.self, from: ["tArray": [["tString": 0]]] as [String: Any])) { error in
+            #expect(error.debugDescription == "Expected String at SELF.tArray[0].tString, found Int")
         }
     }
 
-    func testInt_ClampsDoubles() {
-        XCTAssertEqual(
-            Int8(from: 1000.0, using: .clamping(roundingRule: nil)),
-            Int8.max
+    @Test
+    func int_ClampsDoubles() {
+        #expect(
+            Int8(from: 1000.0, using: .clamping(roundingRule: nil)) == Int8.max
         )
-        XCTAssertEqual(
-            Int8(from: -1000.0, using: .clamping(roundingRule: nil)),
-            Int8.min
+        #expect(
+            Int8(from: -1000.0, using: .clamping(roundingRule: nil)) == Int8.min
         )
-        XCTAssertEqual(
-            Int8(from: 100.0, using: .clamping(roundingRule: nil)),
-            100
+        #expect(
+            Int8(from: 100.0, using: .clamping(roundingRule: nil)) == 100
         )
-        XCTAssertEqual(
-            Int8(from: 100.5, using: .clamping(roundingRule: .toNearestOrAwayFromZero)),
-            101
+        #expect(
+            Int8(from: 100.5, using: .clamping(roundingRule: .toNearestOrAwayFromZero)) == 101
         )
-        XCTAssertEqual(
-            Int8(from: Double.infinity, using: .clamping(roundingRule: .toNearestOrAwayFromZero)),
-            Int8.max
+        #expect(
+            Int8(from: Double.infinity, using: .clamping(roundingRule: .toNearestOrAwayFromZero)) == Int8.max
         )
-        XCTAssertEqual(
-            Int8(from: -Double.infinity, using: .clamping(roundingRule: .toNearestOrAwayFromZero)),
-            Int8.min
+        #expect(
+            Int8(from: -Double.infinity, using: .clamping(roundingRule: .toNearestOrAwayFromZero)) == Int8.min
         )
-        XCTAssertNil(
-            Int8(from: Double.nan, using: .clamping(roundingRule: nil))
+        #expect(
+            Int8(from: Double.nan, using: .clamping(roundingRule: nil)) == nil
         )
     }
 
-    func testUInt_ClampsDoubles() {
-        XCTAssertEqual(
-            UInt8(from: 1000.0, using: .clamping(roundingRule: nil)),
-            UInt8.max
+    @Test
+    func uInt_ClampsDoubles() throws {
+        #expect(
+            UInt8(from: 1000.0, using: .clamping(roundingRule: nil)) == UInt8.max
         )
-        XCTAssertEqual(
-            UInt8(from: -1000.0, using: .clamping(roundingRule: nil)),
-            UInt8.min
+        #expect(
+            UInt8(from: -1000.0, using: .clamping(roundingRule: nil)) == UInt8.min
         )
-        XCTAssertEqual(
-            UInt8(from: 100.0, using: .clamping(roundingRule: nil)),
-            100
+        #expect(
+            UInt8(from: 100.0, using: .clamping(roundingRule: nil)) == 100
         )
-        XCTAssertEqual(
-            UInt8(from: 100.5, using: .clamping(roundingRule: .toNearestOrAwayFromZero)),
-            101
+        #expect(
+            UInt8(from: 100.5, using: .clamping(roundingRule: .toNearestOrAwayFromZero)) == 101
         )
-        XCTAssertEqual(
-            UInt8(from: Double.infinity, using: .clamping(roundingRule: .toNearestOrAwayFromZero)),
-            UInt8.max
+        #expect(
+            UInt8(from: Double.infinity, using: .clamping(roundingRule: .toNearestOrAwayFromZero)) == UInt8.max
         )
-        XCTAssertEqual(
-            UInt8(from: -Double.infinity, using: .clamping(roundingRule: .toNearestOrAwayFromZero)),
-            UInt8.min
+        #expect(
+            UInt8(from: -Double.infinity, using: .clamping(roundingRule: .toNearestOrAwayFromZero)) == UInt8.min
         )
-        XCTAssertNil(
-            UInt8(from: Double.nan, using: .clamping(roundingRule: nil))
+        #expect(
+            UInt8(from: Double.nan, using: .clamping(roundingRule: nil)) == nil
         )
 
-        // [10, , 20.5, 1000, -Double.infinity]
         let decoder = KeyValueDecoder()
         decoder.intDecodingStrategy = .clamping(roundingRule: .toNearestOrAwayFromZero)
-        XCTAssertEqual(
-        try decoder.decode([Int8].self, from: [10, 20.5, 1000, -Double.infinity]),
-        [10, 21, 127, -128]
+        #expect(
+            try decoder.decode([Int8].self, from: [10, 20.5, 1000, -Double.infinity]) == [
+                10, 21, 127, -128
+            ]
         )
-
     }
 
     #if !os(WASI)
-    func testPlistCompatibleDecoder() throws {
+    @Test
+    func plistCompatibleDecoder() throws {
         let plistAny = try PropertyListEncoder.encodeAny([1, 2, Int?.none, 4])
-        XCTAssertEqual(
-            try KeyValueDecoder.makePlistCompatible().decode([Int?].self, from: plistAny),
-            [1, 2, Int?.none, 4]
+        #expect(
+            try KeyValueDecoder.makePlistCompatible().decode([Int?].self, from: plistAny) == [1, 2, Int?.none, 4]
         )
 
-        XCTAssertEqual(
-            try KeyValueDecoder.makePlistCompatible().decode(String?.self, from: "$null"),
-            nil
+        #expect(
+            try KeyValueDecoder.makePlistCompatible().decode(String?.self, from: "$null") == nil
         )
     }
 
-    func testJSONCompatibleDecoder() throws {
+    @Test
+    func jsonCompatibleDecoder() throws {
         let jsonAny = try JSONEncoder.encodeAny([1, 2, Int?.none, 4])
-        XCTAssertEqual(
-            try KeyValueDecoder.makeJSONCompatible().decode([Int?].self, from: jsonAny),
-            [1, 2, Int?.none, 4]
+        #expect(
+            try KeyValueDecoder.makeJSONCompatible().decode([Int?].self, from: jsonAny) == [
+                1, 2, Int?.none, 4
+            ]
         )
     }
     #endif
 }
 
-func AssertThrowsDecodingError<T>(_ expression: @autoclosure () throws -> T,
-                                  file: StaticString = #filePath,
-                                  line: UInt = #line,
-                                  _ errorHandler: (DecodingError) -> Void = { _ in }) {
+func expectDecodingError<T>(_ expression: @autoclosure () throws -> T,
+                            file: String = #filePath,
+                            line: Int = #line,
+                            column: Int = #column,
+                            _ errorHandler: (DecodingError) -> Void = { _ in }) {
+    let location = SourceLocation(fileID: file, filePath: file, line: line, column: column)
     do {
         _ = try expression()
-        XCTFail("Expected error", file: file, line: line)
+        Issue.record("Expected DecodingError", sourceLocation: location)
     } catch let error as DecodingError {
         errorHandler(error)
     } catch {
-        XCTFail("Expected DecodingError \(type(of: error))", file: file, line: line)
+        Issue.record(error, "Expected DecodingError", sourceLocation: location)
     }
 }
 
@@ -1145,4 +1102,5 @@ private extension JSONEncoder {
         return try JSONSerialization.jsonObject(with: data, options: [])
     }
 }
+#endif
 #endif
