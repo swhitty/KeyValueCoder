@@ -7,13 +7,13 @@ on:
 
 jobs:
   xcode_16:
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: 🔍 Xcode Select
         run: |
-          XCODE_PATH=`mdfind "kMDItemCFBundleIdentifier == 'com.apple.dt.Xcode' && kMDItemVersion == '16.0'" -onlyin /Applications | head -1`
+          XCODE_PATH=`mdfind "kMDItemCFBundleIdentifier == 'com.apple.dt.Xcode' && kMDItemVersion == '16.*'" -onlyin /Applications | head -1`
           echo "DEVELOPER_DIR=$XCODE_PATH/Contents/Developer" >> $GITHUB_ENV
       - name: Version
         run: swift --version
@@ -28,6 +28,11 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage_report.lcov
+      - name: 📄 Summary
+        uses: ./.github/actions/test-summary
+        with:
+          junit: result-swift-testing.xml
+          coverage: .build/debug/codecov/KeyValueCoder.json
 
   xcode_15_4:
     runs-on: macos-14
@@ -85,7 +90,7 @@ jobs:
 
   linux_swift_6_0:
     runs-on: ubuntu-latest
-    container: swiftlang/swift:nightly-6.0-jammy
+    container: swift:6.0
     steps:
       - name: Checkout
         uses: actions/checkout@v4
