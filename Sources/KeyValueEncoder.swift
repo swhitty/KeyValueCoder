@@ -122,8 +122,7 @@ extension KeyValueEncoder.NilEncodingStrategy {
     }
 
     static func isOptionalNone(_ value: Any) -> Bool {
-        if Mirror(reflecting: value).displayStyle == .optional,
-           case Optional<Any>.none = value {
+        if case nil as Any? = value {
             return true
         } else {
             return false
