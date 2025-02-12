@@ -1,8 +1,7 @@
 [![Build](https://github.com/swhitty/KeyValueCoder/actions/workflows/build.yml/badge.svg)](https://github.com/swhitty/KeyValueCoder/actions/workflows/build.yml)
 [![CodeCov](https://codecov.io/gh/swhitty/KeyValueCoder/branch/main/graphs/badge.svg)](https://codecov.io/gh/swhitty/KeyValueCoder/branch/main)
-[![Swift 5.9](https://img.shields.io/badge/swift-5.9%20–%206.0-red.svg?style=flat)](https://developer.apple.com/swift)
-[![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)](https://opensource.org/licenses/MIT)
-[![Twitter](https://img.shields.io/badge/twitter-@simonwhitty-blue.svg)](http://twitter.com/simonwhitty)
+[![Platforms](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fswhitty%2FKeyValueCoder%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/swhitty/KeyValueCoder)
+[![Swift 6.0](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fswhitty%2FKeyValueCoder%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/swhitty/KeyValueCoder)
 
 # KeyValueCoder
 A Swift library for serializing `Codable` types to and from `Any` and `UserDefaults`.
