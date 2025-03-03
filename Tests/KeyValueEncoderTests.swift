@@ -668,8 +668,8 @@ struct KeyValueEncodedTests {
 
     @Test
     func aa() {
-        #expect(KeyValueEncoder.NilEncodingStrategy.isOptionalNone(Int?.none))
-        #expect(KeyValueEncoder.NilEncodingStrategy.isOptionalNone(Int??.none))
+        #expect(KeyValueEncoder.NilEncodingStrategy.isOptionalNone(Int?.none as Any))
+        #expect(KeyValueEncoder.NilEncodingStrategy.isOptionalNone(Int??.none as Any))
     }
 }
 
