@@ -35,7 +35,7 @@ import Foundation
 public final class KeyValueEncoder {
 
     /// Contextual user-provided information for use during encoding.
-    public var userInfo: [CodingUserInfoKey: Any]
+    public var userInfo: [CodingUserInfoKey: any Sendable]
 
     /// The strategy to use for encoding `nil`. Defaults to `Optional<Any>.none` which can be cast to any optional type.
     public var nilEncodingStrategy: NilEncodingStrategy = .default
@@ -58,15 +58,15 @@ public final class KeyValueEncoder {
 }
 
 /// Strategy used to encode and decode nil values.
-public enum NilCodingStrategy {
+public enum NilCodingStrategy: Sendable {
     /// `nil` values are removed
     case removed
 
     /// `nil` values are substituted with a placeholder value
-    case placeholder(Any, isNull: (Any) -> Bool)
+    case placeholder(any Sendable, isNull: @Sendable (Any) -> Bool)
 
     /// `nil` values are substituted with `Optional<Any>.none`. Can be cast to any optional type.
-    public static var `default`: NilCodingStrategy { .placeholder(Optional<Any>.none as Any, isNull: isOptionalNone) }
+    public static var `default`: NilCodingStrategy { .placeholder(Optional<any Sendable>.none as any Sendable, isNull: isOptionalNone) }
 
     /// `nil` values are substituted with `"$null"` placeholder string. Compatible with `PropertyListEncoder`.
     public static var stringNull: NilCodingStrategy { .placeholder("$null", isNull: { ($0 as? String == "$null") }) }

@@ -1005,7 +1005,7 @@ private extension KeyValueDecoder {
         }
 
         let decoder = KeyValueDecoder()
-        decoder.userInfo[.decoder] = proxy.decode(from:)
+        decoder.userInfo[.decoder] = proxy as any DecodingProxy
         _ = try decoder.decode(StubDecoder.self, from: value)
         return proxy.result!
     }
@@ -1020,7 +1020,7 @@ private extension KeyValueDecoder {
         }
 
         let decoder = KeyValueDecoder()
-        decoder.userInfo[.decoder] = proxy.decode(from:)
+        decoder.userInfo[.decoder] = proxy as any DecodingProxy
         _ = try decoder.decode(StubDecoder.self, from: value)
         return proxy.result!
     }
@@ -1036,9 +1036,13 @@ private extension CodingUserInfoKey {
     static let decoder = CodingUserInfoKey(rawValue: "decoder")!
 }
 
+private protocol DecodingProxy: Sendable {
+    func decode(from decoder: any Decoder) throws
+}
+
 private struct StubDecoder: Decodable {
 
-    final class Proxy<T> {
+    final class Proxy<T>: @unchecked Sendable, DecodingProxy {
         private let closure: (any Decoder) throws -> T
         private(set) var result: T?
 
@@ -1052,8 +1056,8 @@ private struct StubDecoder: Decodable {
     }
 
     init(from decoder: any Decoder) throws {
-        let closure = decoder.userInfo[.decoder] as! (any Decoder) throws -> Void
-        try closure(decoder)
+        let proxy = decoder.userInfo[.decoder] as! any DecodingProxy
+        try proxy.decode(from: decoder)
     }
 }
 

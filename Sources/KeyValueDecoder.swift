@@ -36,7 +36,7 @@ import Foundation
 public final class KeyValueDecoder {
 
     /// Contextual user-provided information for use during encoding.
-    public var userInfo: [CodingUserInfoKey: Any]
+    public var userInfo: [CodingUserInfoKey: any Sendable]
 
     /// The strategy to use for decoding `nil`. Defaults to `Optional<Any>.none` which can be decoded to any optional type.
     public var nilDecodingStrategy: NilDecodingStrategy = .default
@@ -71,7 +71,7 @@ public final class KeyValueDecoder {
     /// Strategy used to decode nil values.
     public typealias NilDecodingStrategy = NilCodingStrategy
 
-    public enum IntDecodingStrategy {
+    public enum IntDecodingStrategy: Sendable {
         /// Decodes all number types with lossless conversion or throws error.
         case exact
 
