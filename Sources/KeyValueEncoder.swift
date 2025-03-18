@@ -75,6 +75,13 @@ public enum NilCodingStrategy: Sendable {
     public static var nsNull: NilCodingStrategy { .placeholder(NSNull(), isNull: { $0 is NSNull }) }
 }
 
+#if canImport(Combine)
+import Combine
+extension KeyValueEncoder: TopLevelEncoder {
+    public typealias Output = Any?
+}
+#endif
+
 extension KeyValueEncoder {
 
     static func makePlistCompatible() -> KeyValueEncoder {

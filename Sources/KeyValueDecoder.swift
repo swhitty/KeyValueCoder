@@ -84,6 +84,13 @@ public final class KeyValueDecoder {
     }
 }
 
+#if canImport(Combine)
+import Combine
+extension KeyValueDecoder: TopLevelDecoder {
+    public typealias Input = Any
+}
+#endif
+
 extension KeyValueDecoder {
 
     static func makePlistCompatible() -> KeyValueDecoder {
