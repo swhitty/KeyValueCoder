@@ -33,7 +33,7 @@ import CoreFoundation
 import Foundation
 
 /// Top level encoder that converts `[String: Any]`, `[Any]` or `Any` into `Codable` types.
-public final class KeyValueDecoder {
+public struct KeyValueDecoder: Sendable {
 
     /// Contextual user-provided information for use during encoding.
     public var userInfo: [CodingUserInfoKey: any Sendable]
@@ -94,7 +94,7 @@ extension KeyValueDecoder: TopLevelDecoder {
 extension KeyValueDecoder {
 
     static func makePlistCompatible() -> KeyValueDecoder {
-        let decoder = KeyValueDecoder()
+        var decoder = KeyValueDecoder()
         decoder.nilDecodingStrategy = .stringNull
         return decoder
     }

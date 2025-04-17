@@ -146,7 +146,7 @@ struct KeyValueDecoderTests {
 
     @Test
     func decodesRounded_Ints() throws {
-        let decoder = KeyValueDecoder()
+        var decoder = KeyValueDecoder()
         decoder.intDecodingStrategy = .rounding(rule: .toNearestOrAwayFromZero)
 
         #expect(
@@ -235,7 +235,7 @@ struct KeyValueDecoderTests {
 
     @Test
     func decodesRounded_UInts() throws {
-        let decoder = KeyValueDecoder()
+        var decoder = KeyValueDecoder()
         decoder.intDecodingStrategy = .rounding(rule: .toNearestOrAwayFromZero)
 
         #expect(
@@ -422,7 +422,7 @@ struct KeyValueDecoderTests {
 
     @Test
     func decodes_Null() throws {
-        let decoder = KeyValueDecoder()
+        var decoder = KeyValueDecoder()
         decoder.nilDecodingStrategy = .default
 
         #expect(throws: (any Error).self) {
@@ -461,7 +461,7 @@ struct KeyValueDecoderTests {
 
     @Test
     func decodes_UnkeyedOptionals() throws {
-        let decoder = KeyValueDecoder()
+        var decoder = KeyValueDecoder()
 
         decoder.nilDecodingStrategy = .removed
         #expect(
@@ -704,7 +704,7 @@ struct KeyValueDecoderTests {
 
     @Test
     func decodes_UnkeyedNil() throws {
-        let decoder = KeyValueDecoder()
+        var decoder = KeyValueDecoder()
         decoder.nilDecodingStrategy = .default
 
         #expect(
@@ -917,7 +917,7 @@ struct KeyValueDecoderTests {
             UInt8(from: Double.nan, using: .clamping(roundingRule: nil)) == nil
         )
 
-        let decoder = KeyValueDecoder()
+        var decoder = KeyValueDecoder()
         decoder.intDecodingStrategy = .clamping(roundingRule: .toNearestOrAwayFromZero)
         #expect(
             try decoder.decode([Int8].self, from: [10, 20.5, 1000, -Double.infinity]) == [
@@ -1004,7 +1004,7 @@ private extension KeyValueDecoder {
             return try closure(&container)
         }
 
-        let decoder = KeyValueDecoder()
+        var decoder = KeyValueDecoder()
         decoder.userInfo[.decoder] = proxy as any DecodingProxy
         _ = try decoder.decode(StubDecoder.self, from: value)
         return proxy.result!
@@ -1019,14 +1019,14 @@ private extension KeyValueDecoder {
             return try closure(&container)
         }
 
-        let decoder = KeyValueDecoder()
+        var decoder = KeyValueDecoder()
         decoder.userInfo[.decoder] = proxy as any DecodingProxy
         _ = try decoder.decode(StubDecoder.self, from: value)
         return proxy.result!
     }
 
     static func makeJSONCompatible() -> KeyValueDecoder {
-        let decoder = KeyValueDecoder()
+        var decoder = KeyValueDecoder()
         decoder.nilDecodingStrategy = .nsNull
         return decoder
     }
