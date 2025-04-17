@@ -64,7 +64,7 @@ The encoding of `Optional.none` can be adjusted by setting the strategy.
 The default strategy preserves `Optional.none`:
 
 ```swift
-let encoder = KeyValueEncoder()
+var encoder = KeyValueEncoder()
 encoder.nilEncodingStrategy = .default
 
 // [1, 2, nil, 3]
@@ -115,7 +115,7 @@ _ = try KeyValueDecoder().decode(Int8.self, from: 1000])
 Values with a fractional part can also be decoded to integers by rounding with any [`FloatingPointRoundingRule`](https://developer.apple.com/documentation/swift/floatingpointroundingrule):
 
 ```swift
-let decoder = KeyValueDecoder()
+var decoder = KeyValueDecoder()
 decoder.intDecodingStrategy = .rounding(rule: .toNearestOrAwayFromZero)
 
 // [10, -21, 50]
@@ -125,7 +125,7 @@ let values = try decoder.decode([Int].self, from: [10.1, -20.9, 50.00001]),
 Values can also be clamped to the representable range:
 
 ```swift
-let decoder = KeyValueDecoder()
+var decoder = KeyValueDecoder()
 decoder.intDecodingStrategy = .clamping(roundingRule: .toNearestOrAwayFromZero)
 
 // [10, 21, 127, -128]
