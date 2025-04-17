@@ -540,7 +540,7 @@ struct KeyValueEncodedTests {
 
     @Test
     func nilEncodingStrategy_SingleContainer() throws {
-        let encoder = KeyValueEncoder()
+        var encoder = KeyValueEncoder()
 
         encoder.nilEncodingStrategy = .removed
         #expect(
@@ -568,7 +568,7 @@ struct KeyValueEncodedTests {
 
     @Test
     func nilEncodingStrategy_UnkeyedContainer() throws {
-        let encoder = KeyValueEncoder()
+        var encoder = KeyValueEncoder()
 
         encoder.nilEncodingStrategy = .removed
         #expect(
@@ -677,7 +677,7 @@ private extension KeyValueEncoder {
 
     static func encodeSingleValue(nilEncodingStrategy: NilEncodingStrategy = .default,
                                   with closure: (inout any SingleValueEncodingContainer) throws -> Void) throws -> EncodedValue {
-        let encoder = KeyValueEncoder()
+        var encoder = KeyValueEncoder()
         encoder.nilEncodingStrategy = nilEncodingStrategy
         return try encoder.encodeValue {
             var container = $0.singleValueContainer()
@@ -692,11 +692,12 @@ private extension KeyValueEncoder {
         }
     }
 
-    static func encodeKeyedValue<K: CodingKey>(keyedBy: K.Type = K.self,
-                                               nilEncodingStrategy: NilEncodingStrategy = .default,
-                                               with closure: @escaping (inout KeyedEncodingContainer<K>) throws -> Void) throws
-        -> EncodedValue {
-        let encoder = KeyValueEncoder()
+    static func encodeKeyedValue<K: CodingKey>(
+        keyedBy: K.Type = K.self,
+        nilEncodingStrategy: NilEncodingStrategy = .default,
+        with closure: @escaping (inout KeyedEncodingContainer<K>) throws -> Void
+    ) throws -> EncodedValue {
+        var encoder = KeyValueEncoder()
         encoder.nilEncodingStrategy = nilEncodingStrategy
         return try encoder.encodeValue {
             var container = $0.container(keyedBy: K.self)
@@ -711,7 +712,7 @@ private extension KeyValueEncoder {
     }
 
     static func makeJSONCompatible() -> KeyValueEncoder {
-        let encoder = KeyValueEncoder()
+        var encoder = KeyValueEncoder()
         encoder.nilEncodingStrategy = .nsNull
         return encoder
     }

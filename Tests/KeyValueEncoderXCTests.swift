@@ -34,7 +34,7 @@
 
 import XCTest
 
-final class KeyValueEncodedTests: XCTestCase {
+final class KeyValueEncodedXCTests: XCTestCase {
 
     typealias EncodedValue = KeyValueEncoder.EncodedValue
 
@@ -543,7 +543,7 @@ final class KeyValueEncodedTests: XCTestCase {
     }
 
     func testNilEncodingStrategy_SingleContainer() {
-        let encoder = KeyValueEncoder()
+        var encoder = KeyValueEncoder()
 
         encoder.nilEncodingStrategy = .removed
         XCTAssertNil(
@@ -572,7 +572,7 @@ final class KeyValueEncodedTests: XCTestCase {
     }
 
     func testNilEncodingStrategy_UnkeyedContainer() {
-        let encoder = KeyValueEncoder()
+        var encoder = KeyValueEncoder()
 
         encoder.nilEncodingStrategy = .removed
         XCTAssertEqual(
@@ -670,7 +670,7 @@ private extension KeyValueEncoder {
 
     static func encodeSingleValue(nilEncodingStrategy: NilEncodingStrategy = .default,
                                   with closure: (inout any SingleValueEncodingContainer) throws -> Void) throws -> EncodedValue {
-        let encoder = KeyValueEncoder()
+        var encoder = KeyValueEncoder()
         encoder.nilEncodingStrategy = nilEncodingStrategy
         return try encoder.encodeValue {
             var container = $0.singleValueContainer()
@@ -688,7 +688,7 @@ private extension KeyValueEncoder {
     static func encodeKeyedValue<K: CodingKey>(keyedBy: K.Type = K.self,
                                                nilEncodingStrategy: NilEncodingStrategy = .default,
                                                with closure: @escaping (inout KeyedEncodingContainer<K>) throws -> Void) throws -> EncodedValue {
-        let encoder = KeyValueEncoder()
+        var encoder = KeyValueEncoder()
         encoder.nilEncodingStrategy = nilEncodingStrategy
         return try encoder.encodeValue {
             var container = $0.container(keyedBy: K.self)
@@ -703,7 +703,7 @@ private extension KeyValueEncoder {
     }
 
     static func makeJSONCompatible() -> KeyValueEncoder {
-        let encoder = KeyValueEncoder()
+        var encoder = KeyValueEncoder()
         encoder.nilEncodingStrategy = .nsNull
         return encoder
     }
