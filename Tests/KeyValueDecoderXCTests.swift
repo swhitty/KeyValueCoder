@@ -34,7 +34,7 @@
 
 import XCTest
 
-final class KeyValueDecoderTests: XCTestCase {
+final class KeyValueDecoderXCTests: XCTestCase {
 
     func testDecodes_String() {
         let decoder = KeyValueDecoder()
@@ -149,7 +149,7 @@ final class KeyValueDecoderTests: XCTestCase {
     }
 
     func testDecodesRounded_Ints() {
-        let decoder = KeyValueDecoder()
+        var decoder = KeyValueDecoder()
         decoder.intDecodingStrategy = .rounding(rule: .toNearestOrAwayFromZero)
 
         XCTAssertEqual(
@@ -247,7 +247,7 @@ final class KeyValueDecoderTests: XCTestCase {
     }
 
     func testDecodesRounded_UInts() {
-        let decoder = KeyValueDecoder()
+        var decoder = KeyValueDecoder()
         decoder.intDecodingStrategy = .rounding(rule: .toNearestOrAwayFromZero)
 
         XCTAssertEqual(
@@ -460,7 +460,7 @@ final class KeyValueDecoderTests: XCTestCase {
     }
 
     func testDecodes_Null() {
-        let decoder = KeyValueDecoder()
+        var decoder = KeyValueDecoder()
         decoder.nilDecodingStrategy = .default
 
         XCTAssertThrowsError(
@@ -498,7 +498,7 @@ final class KeyValueDecoderTests: XCTestCase {
     }
 
     func testDecodes_UnkeyedOptionals() {
-        let decoder = KeyValueDecoder()
+        var decoder = KeyValueDecoder()
 
         decoder.nilDecodingStrategy = .removed
         XCTAssertEqual(
@@ -749,7 +749,7 @@ final class KeyValueDecoderTests: XCTestCase {
     }
 
     func testDecodes_UnkeyedNil() {
-        let decoder = KeyValueDecoder()
+        var decoder = KeyValueDecoder()
         decoder.nilDecodingStrategy = .default
 
         XCTAssertEqual(
@@ -963,7 +963,7 @@ final class KeyValueDecoderTests: XCTestCase {
         )
 
         // [10, , 20.5, 1000, -Double.infinity]
-        let decoder = KeyValueDecoder()
+        var decoder = KeyValueDecoder()
         decoder.intDecodingStrategy = .clamping(roundingRule: .toNearestOrAwayFromZero)
         XCTAssertEqual(
         try decoder.decode([Int8].self, from: [10, 20.5, 1000, -Double.infinity]),
@@ -1037,32 +1037,39 @@ private extension KeyValueDecoder {
 
     }
 
-    static func decodeValue<K: CodingKey, T>(from value: [String: Any], keyedBy: K.Type = K.self, with closure: @escaping (inout KeyedDecodingContainer<K>) throws -> T) throws -> T {
+    static func decodeValue<K: CodingKey, T>(
+        from value: [String: Any],
+        keyedBy: K.Type = K.self,
+        with closure: @escaping (inout KeyedDecodingContainer<K>
+        ) throws -> T) throws -> T {
         let proxy = StubDecoder.Proxy { decoder in
             var container = try decoder.container(keyedBy: K.self)
             return try closure(&container)
         }
 
-        let decoder = KeyValueDecoder()
-        decoder.userInfo[.decoder] = proxy.decode(from:)
+        var decoder = KeyValueDecoder()
+        decoder.userInfo[.decoder] = proxy as any DecodingProxy
         _ = try decoder.decode(StubDecoder.self, from: value)
         return proxy.result!
     }
 
-    static func decodeUnkeyedValue<T>(from value: [Any], with closure: @escaping (inout any UnkeyedDecodingContainer) throws -> T) throws -> T {
+    static func decodeUnkeyedValue<T>(
+        from value: [Any],
+        with closure: @escaping (inout any UnkeyedDecodingContainer) throws -> T
+    ) throws -> T {
         let proxy = StubDecoder.Proxy { decoder in
             var container = try decoder.unkeyedContainer()
             return try closure(&container)
         }
 
-        let decoder = KeyValueDecoder()
-        decoder.userInfo[.decoder] = proxy.decode(from:)
+        var decoder = KeyValueDecoder()
+        decoder.userInfo[.decoder] = proxy as any DecodingProxy
         _ = try decoder.decode(StubDecoder.self, from: value)
         return proxy.result!
     }
 
     static func makeJSONCompatible() -> KeyValueDecoder {
-        let decoder = KeyValueDecoder()
+        var decoder = KeyValueDecoder()
         decoder.nilDecodingStrategy = .nsNull
         return decoder
     }
@@ -1072,9 +1079,13 @@ private extension CodingUserInfoKey {
     static let decoder = CodingUserInfoKey(rawValue: "decoder")!
 }
 
+private protocol DecodingProxy: Sendable {
+    func decode(from decoder: any Decoder) throws
+}
+
 private struct StubDecoder: Decodable {
 
-    final class Proxy<T> {
+    final class Proxy<T>: @unchecked Sendable, DecodingProxy {
         private let closure: (any Decoder) throws -> T
         private(set) var result: T?
 
@@ -1088,8 +1099,8 @@ private struct StubDecoder: Decodable {
     }
 
     init(from decoder: any Decoder) throws {
-        let closure = decoder.userInfo[.decoder] as! (any Decoder) throws -> Void
-        try closure(decoder)
+        let proxy = decoder.userInfo[.decoder] as! any DecodingProxy
+        try proxy.decode(from: decoder)
     }
 }
 
