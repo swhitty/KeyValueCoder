@@ -44,6 +44,9 @@ public struct KeyValueDecoder: Sendable {
     /// The strategy to use for decoding BinaryInteger types. Defaults to `.exact` for lossless conversion between types.
     public var intDecodingStrategy: IntDecodingStrategy = .exact
 
+    /// The strategy to use for decoding each types keys.
+    public var keyDecodingStrategy: KeyDecodingStrategy = .useDefaultKeys
+
     /// Initializes `self` with default strategy.
     public init () {
         self.userInfo = [:]
@@ -82,6 +85,15 @@ public struct KeyValueDecoder: Sendable {
         /// Floating point conversions are also clamped, rounded when a rule is provided
         case clamping(roundingRule: FloatingPointRoundingRule?)
     }
+
+    /// Strategy to determine how to decode a type’s coding keys from String values.
+    public enum KeyDecodingStrategy: Sendable {
+        /// A key decoding strategy that converts snake-case keys to camel-case keys.
+        case convertFromSnakeCase
+
+        /// A key encoding strategy that doesn’t change key names during encoding.
+        case useDefaultKeys
+    }
 }
 
 #if canImport(Combine)
@@ -105,12 +117,14 @@ private extension KeyValueDecoder {
     struct DecodingStrategy {
         var optionals: NilDecodingStrategy
         var integers: IntDecodingStrategy
+        var keys: KeyDecodingStrategy
     }
 
     var strategy: DecodingStrategy {
         DecodingStrategy(
             optionals: nilDecodingStrategy,
-            integers: intDecodingStrategy
+            integers: intDecodingStrategy,
+            keys: keyDecodingStrategy
         )
     }
 
@@ -381,7 +395,8 @@ private extension KeyValueDecoder {
 
         func container(for key: Key) throws -> SingleContainer {
             let path = codingPath.appending(key: key)
-            guard let value = storage[key.stringValue] else {
+            let kkk = strategy.keys.makeStorageKey(for: key.stringValue)
+            guard let value = storage[kkk] else {
                 let keyPath = codingPath.makeKeyPath(appending: key)
                 let context = DecodingError.Context(codingPath: codingPath, debugDescription: "Dictionary does not contain key \(keyPath)")
                 throw DecodingError.keyNotFound(key, context)
@@ -395,7 +410,7 @@ private extension KeyValueDecoder {
         }
 
         func contains(_ key: Key) -> Bool {
-            return storage[key.stringValue] != nil
+            return storage[strategy.keys.makeStorageKey(for: key.stringValue)] != nil
         }
 
         func decodeNil(forKey key: Key) throws -> Bool {
@@ -636,6 +651,16 @@ private extension KeyValueDecoder {
                 strategy: strategy
             )
             return Decoder(container: container)
+        }
+    }
+}
+
+extension KeyValueDecoder.KeyDecodingStrategy {
+
+    func makeStorageKey(for key: String) -> String {
+        switch self {
+        case .useDefaultKeys: return key
+        case .convertFromSnakeCase: return key.toSnakeCase()
         }
     }
 }

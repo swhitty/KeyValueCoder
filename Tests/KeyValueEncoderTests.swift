@@ -366,6 +366,24 @@ struct KeyValueEncodedTests {
     }
 
     @Test
+    func keyedContainer_Encodes_SnakeCase() throws {
+        let shrimp = SnakeNode(firstName: "shrimp", lastName: "anemone")
+        let node = SnakeNode(firstName: "fish", lastName: "chips", profileURL: "drop", relNODESLink: ["ocean": shrimp])
+
+        var encoder = KeyValueEncoder()
+        encoder.keyEncodingStrategy = .convertToSnakeCase
+
+        #expect(
+            try encoder.encode(node) as? NSDictionary == [
+                "first_name": "fish",
+                "surname": "chips",
+                "profile_url": "drop",
+                "rel_nodes_link": ["ocean": ["first_name": "shrimp", "surname": "anemone"]]
+            ]
+        )
+    }
+
+    @Test
     func unkeyedContainer_Encodes_Optionals() throws {
         #expect(
             try KeyValueEncoder.encodeUnkeyedValue {
@@ -744,6 +762,18 @@ struct Node: Codable, Equatable {
 
     enum RelatedKeys: String, CodingKey {
         case left, right
+    }
+}
+
+struct SnakeNode: Codable, Equatable {
+    var firstName: String
+    var lastName: String
+    var profileURL: String?
+    var relNODESLink: [String: SnakeNode]?
+
+    enum CodingKeys: String, CodingKey {
+        case firstName, profileURL, relNODESLink
+        case lastName = "surname"
     }
 }
 

@@ -449,6 +449,28 @@ struct KeyValueDecoderTests {
     }
 
     @Test
+    func decodes_SnakeCase() throws {
+        let dict: [String: Any] = [
+            "first_name": "fish",
+            "surname": "chips",
+            "profile_url": "drop",
+            "rel_nodes_link": ["ocean": ["first_name": "shrimp", "surname": "anemone"]]
+        ]
+
+        var decoder = KeyValueDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+
+        #expect(
+            try decoder.decode(SnakeNode.self, from: dict) == SnakeNode(
+                firstName: "fish",
+                lastName: "chips",
+                profileURL: "drop",
+                relNODESLink: ["ocean": SnakeNode(firstName: "shrimp", lastName: "anemone")]
+            )
+        )
+    }
+
+    @Test
     func decodes_NestedUnkeyed() throws {
         let decoder = KeyValueDecoder()
 

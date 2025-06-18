@@ -132,6 +132,27 @@ decoder.intDecodingStrategy = .clamping(roundingRule: .toNearestOrAwayFromZero)
 let values = try decoder.decode([Int8].self, from: [10, 20.5, 1000, -Double.infinity])
 ```
 
+## Key Strategy
+
+Keys can be encoded to snake_case by setting the strategy:
+
+```swift
+var encoder = KeyValueEncoder()
+encoder.keyEncodingStrategy = .convertToSnakeCase
+
+// ["first_name": "fish", "surname": "chips"]
+let dict = try encoder.encode(Person(firstName: "fish", surname: "chips))
+```
+
+And decoded from snake_case:
+
+```swift
+var decoder = KeyValueDecoder()
+decoder.keyDecodingStrategy = .convertFromSnakeCase
+
+let person = try decoder.decode(Person.self, from: dict)
+```
+
 ## UserDefaults
 Encode and decode [`Codable`](https://developer.apple.com/documentation/swift/codable) types with [`UserDefaults`](https://developer.apple.com/documentation/foundation/userdefaults):
 
