@@ -87,7 +87,7 @@ final class KeyValueEncodedXCTests: XCTestCase {
             try KeyValueEncoder.encodeSingleValue {
                 try $0.encode(URL(string: "fish.com")!)
             },
-            EncodedValue(URL(string: "fish.com")!)
+            .value(URL(string: "fish.com")!)
         )
     }
 
@@ -765,6 +765,20 @@ extension KeyValueEncoder.EncodedValue {
             return self
         }
     }
+}
+
+private extension KeyValueEncoder.EncodedValue {
+    static func isSupportedValue(_ value: Any) -> Bool {
+        Self.makeValue(for: value, using: .default) != nil
+    }
+}
+
+private extension KeyValueEncoder.EncodingStrategy {
+    static let `default` = Self(
+        optionals: .default,
+        keys: .useDefaultKeys,
+        dates: .date
+    )
 }
 
 #if !os(WASI)

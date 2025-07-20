@@ -87,7 +87,7 @@ struct KeyValueEncodedTests {
         #expect(
             try KeyValueEncoder.encodeSingleValue {
                 try $0.encode(URL(string: "fish.com")!)
-            } == EncodedValue(URL(string: "fish.com")!)
+            } == .value(URL(string: "fish.com")!)
         )
     }
 
@@ -202,10 +202,10 @@ struct KeyValueEncodedTests {
     @Test
     func encodes() throws {
         let node = Node(id: 1,
-             name: "root",
-             descendents: [Node(id: 2), Node(id: 3)],
-             related: ["left": Node(id: 4, descendents: [Node(id: 5)]),
-                       "right": Node(id: 6)]
+                        name: "root",
+                        descendents: [Node(id: 2), Node(id: 3)],
+                        related: ["left": Node(id: 4, descendents: [Node(id: 5)]),
+                                  "right": Node(id: 6)]
         )
 
         #expect(
@@ -245,9 +245,9 @@ struct KeyValueEncodedTests {
 
         #expect(
             try KeyValueEncoder().encode(real) as? NSDictionary == [
-               "tBool": true,
-               "tArray": [["tBool": false]]
-           ]
+                "tBool": true,
+                "tArray": [["tBool": false]]
+            ]
         )
     }
 
@@ -260,9 +260,9 @@ struct KeyValueEncodedTests {
 
         #expect(
             try KeyValueEncoder().encode(real) as? NSDictionary == [
-               "tDouble": 20,
-               "tFloat": -10
-           ]
+                "tDouble": 20,
+                "tFloat": -10
+            ]
         )
     }
 
@@ -274,8 +274,8 @@ struct KeyValueEncodedTests {
 
         #expect(
             try KeyValueEncoder().encode(urls) as? NSDictionary == [
-               "tURL": URL(string: "fish.com")!
-           ]
+                "tURL": URL(string: "fish.com")!
+            ]
         )
     }
 
@@ -293,14 +293,14 @@ struct KeyValueEncodedTests {
 
         #expect(
             try KeyValueEncoder().encode(ints) as? NSDictionary == [
-               "tInt": 10,
-               "tInt8": -20,
-               "tInt16": 30,
-               "tInt32": -40,
-               "tInt64": Int64.max,
-               "tArray": [["tInt": -1], ["tInt": -2]],
-               "tDictionary": ["rel": ["tInt": -3]]
-           ]
+                "tInt": 10,
+                "tInt8": -20,
+                "tInt16": 30,
+                "tInt32": -40,
+                "tInt64": Int64.max,
+                "tArray": [["tInt": -1], ["tInt": -2]],
+                "tDictionary": ["rel": ["tInt": -3]]
+            ]
         )
     }
 
@@ -318,14 +318,14 @@ struct KeyValueEncodedTests {
 
         #expect(
             try KeyValueEncoder().encode(uints) as? NSDictionary == [
-               "tUInt": 10,
-               "tUInt8": 20,
-               "tUInt16": 30,
-               "tUInt32": 40,
-               "tUInt64": UInt64.max,
-               "tArray": [["tUInt": 50], ["tUInt": 60]],
-               "tDictionary": ["rel": ["tUInt": 70]]
-           ]
+                "tUInt": 10,
+                "tUInt8": 20,
+                "tUInt16": 30,
+                "tUInt32": 40,
+                "tUInt64": UInt64.max,
+                "tArray": [["tUInt": 50], ["tUInt": 60]],
+                "tDictionary": ["rel": ["tUInt": 70]]
+            ]
         )
     }
 
@@ -654,7 +654,7 @@ struct KeyValueEncodedTests {
         )
     }
 
-    #if !os(WASI)
+#if !os(WASI)
     @Test
     func plistCompatibleEncoder() throws {
         let keyValueAny = try KeyValueEncoder.makePlistCompatible().encode([1, 2, Int?.none, 4])
@@ -664,13 +664,36 @@ struct KeyValueEncodedTests {
             ]
         )
     }
-    #endif
+#endif
 
     @Test
     func encoder_Encodes_Dates() throws {
-        let date = Date()
+        var encoder = KeyValueEncoder()
+        let referenceDate = Date(timeIntervalSinceReferenceDate: 0)
+
+        encoder.dateEncodingStrategy = .date
         #expect(
-            try KeyValueEncoder().encode(date) as? Date == date
+            try encoder.encode(referenceDate) as? Date == referenceDate
+        )
+
+        encoder.dateEncodingStrategy = .iso8601()
+        #expect(
+            try encoder.encode(referenceDate) as? String == "2001-01-01T00:00:00Z"
+        )
+
+        encoder.dateEncodingStrategy = .iso8601(options: [.withInternetDateTime, .withFractionalSeconds])
+        #expect(
+            try encoder.encode(referenceDate) as? String == "2001-01-01T00:00:00.000Z"
+        )
+
+        encoder.dateEncodingStrategy = .millisecondsSince1970
+        #expect(
+            try encoder.encode(referenceDate) as? Int == 978307200000
+        )
+
+        encoder.dateEncodingStrategy = .secondsSince1970
+        #expect(
+            try encoder.encode(referenceDate) as? Int == 978307200
         )
     }
 
@@ -804,6 +827,20 @@ extension KeyValueEncoder.EncodedValue {
             return self
         }
     }
+}
+
+private extension KeyValueEncoder.EncodedValue {
+    static func isSupportedValue(_ value: Any) -> Bool {
+        Self.makeValue(for: value, using: .default) != nil
+    }
+}
+
+private extension KeyValueEncoder.EncodingStrategy {
+    static let `default` = Self(
+        optionals: .default,
+        keys: .useDefaultKeys,
+        dates: .date
+    )
 }
 
 #if !os(WASI)
