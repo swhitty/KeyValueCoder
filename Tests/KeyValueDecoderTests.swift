@@ -403,11 +403,35 @@ struct KeyValueDecoderTests {
 
     @Test
     func decodes_Date() throws {
-        let decoder = KeyValueDecoder()
+        var decoder = KeyValueDecoder()
+        let referenceDate = Date(timeIntervalSinceReferenceDate: 0)
 
-        let date = Date(timeIntervalSinceReferenceDate: 0)
+        decoder.dateDecodingStrategy = .date
         #expect(
-            try decoder.decode(Date.self, from: date) == date
+            try decoder.decode(Date.self, from: referenceDate) == referenceDate
+        )
+
+        decoder.dateDecodingStrategy = .iso8601()
+        #expect(
+            try decoder.decode(Date.self, from: "2001-01-01T00:00:00Z") == referenceDate
+        )
+        #expect(throws: DecodingError.self) {
+            try decoder.decode(Date.self, from: "2001-01-01")
+        }
+
+        decoder.dateDecodingStrategy = .iso8601(options: [.withInternetDateTime, .withFractionalSeconds])
+        #expect(
+            try decoder.decode(Date.self, from: "2001-01-01T00:00:00.000Z") == referenceDate
+        )
+
+        decoder.dateDecodingStrategy = .millisecondsSince1970
+        #expect(
+            try decoder.decode(Date.self, from: 978307200000) == referenceDate
+        )
+
+        decoder.dateDecodingStrategy = .secondsSince1970
+        #expect(
+            try decoder.decode(Date.self, from: 978307200) == referenceDate
         )
     }
 

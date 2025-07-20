@@ -38,14 +38,17 @@ public struct KeyValueDecoder: Sendable {
     /// Contextual user-provided information for use during encoding.
     public var userInfo: [CodingUserInfoKey: any Sendable]
 
-    /// The strategy to use for decoding `nil`. Defaults to `Optional<Any>.none` which can be decoded to any optional type.
-    public var nilDecodingStrategy: NilDecodingStrategy = .default
+    /// The strategy to use for decoding Date types.
+    public var dateDecodingStrategy: DateDecodingStrategy = .date
 
     /// The strategy to use for decoding BinaryInteger types. Defaults to `.exact` for lossless conversion between types.
     public var intDecodingStrategy: IntDecodingStrategy = .exact
 
     /// The strategy to use for decoding each types keys.
     public var keyDecodingStrategy: KeyDecodingStrategy = .useDefaultKeys
+
+    /// The strategy to use for decoding `nil`. Defaults to `Optional<Any>.none` which can be decoded to any optional type.
+    public var nilDecodingStrategy: NilDecodingStrategy = .default
 
     /// Initializes `self` with default strategy.
     public init () {
@@ -94,6 +97,21 @@ public struct KeyValueDecoder: Sendable {
         /// A key encoding strategy that doesn’t change key names during encoding.
         case useDefaultKeys
     }
+
+    public enum DateDecodingStrategy: Sendable {
+
+        /// Decodes dates by casting from Any.
+        case date
+
+        /// Decodes dates from ISO8601 strings.
+        case iso8601(options: ISO8601DateFormatter.Options = [.withInternetDateTime])
+
+        /// Decodes dates in terms of milliseconds since midnight UTC on January 1st, 1970.
+        case millisecondsSince1970
+
+        /// Decodes dates in terms of seconds since midnight UTC on January 1st, 1970.
+        case secondsSince1970
+    }
 }
 
 #if canImport(Combine)
@@ -118,13 +136,15 @@ private extension KeyValueDecoder {
         var optionals: NilDecodingStrategy
         var integers: IntDecodingStrategy
         var keys: KeyDecodingStrategy
+        var dates: DateDecodingStrategy
     }
 
     var strategy: DecodingStrategy {
         DecodingStrategy(
             optionals: nilDecodingStrategy,
             integers: intDecodingStrategy,
-            keys: keyDecodingStrategy
+            keys: keyDecodingStrategy,
+            dates: dateDecodingStrategy
         )
     }
 
@@ -336,7 +356,23 @@ private extension KeyValueDecoder {
         }
 
         func decode(_ type: Date.Type) throws -> Date {
-            try getValue()
+            switch strategy.dates {
+            case .date:
+                return try getValue()
+            case .iso8601(options: let options):
+                let string = try decode(String.self)
+                let formatter = ISO8601DateFormatter()
+                formatter.formatOptions = options
+                guard let date = formatter.date(from: string) else {
+                    throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: codingPath, debugDescription: "Failed to decode Date from ISO8601 string \(string)"))
+                }
+                return date
+            case .millisecondsSince1970:
+                return try Date(timeIntervalSince1970: TimeInterval(decode(Int.self)) / 1000)
+
+            case .secondsSince1970:
+                return try Date(timeIntervalSince1970: TimeInterval(decode(Int.self)))
+            }
         }
 
         func decode(_ type: Data.Type) throws -> Data {
