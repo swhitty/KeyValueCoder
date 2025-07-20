@@ -57,6 +57,34 @@ let user = try KeyValueDecoder().decode(User.self, from: [["id": 1, "name": "Her
 let ascii = try KeyValueDecoder().decode([UInt8].self, from: [10, 100, 1000])
 ```
 
+
+## Date Encoding/Decoding Strategy
+
+The encoding of `Date` can be adjusted by setting the strategy.  
+
+By default `Date` instances are encoded by simply casting to `Any` but this adjusted by setting the strategy.  
+
+The default strategy casts to `Any` leaving the instance unchanged:
+
+```swift
+var encoder = KeyValueEncoder()
+encoder.dateEncodingStrategy = .date
+
+// Date()
+let any = try encoder.encode(Date())
+```
+
+ISO8601 compatible strings can be used:
+
+```swift
+encoder.dateEncodingStrategy = .iso8601()
+
+// "1970-01-01T00:00:00Z"
+let any = try encoder.encode(Date(timeIntervalSince1970: 0))
+```
+
+Epochs are also supported using `.secondsSince1970` and `millisecondsSince1970`.
+
 ## Nil Encoding/Decoding Strategy
 
 The encoding of `Optional.none` can be adjusted by setting the strategy.  

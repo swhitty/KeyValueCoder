@@ -37,11 +37,15 @@ public struct KeyValueEncoder: Sendable {
     /// Contextual user-provided information for use during encoding.
     public var userInfo: [CodingUserInfoKey: any Sendable]
 
-    /// The strategy to use for encoding `nil`. Defaults to `Optional<Any>.none` which can be cast to any optional type.
-    public var nilEncodingStrategy: NilEncodingStrategy = .default
+    /// The strategy to use for encoding Date types.
+    public var dateEncodingStrategy: DateEncodingStrategy = .date
 
     /// The strategy to use for encoding each types keys.
     public var keyEncodingStrategy: KeyEncodingStrategy = .useDefaultKeys
+
+    /// The strategy to use for encoding `nil`. Defaults to `Optional<Any>.none` which can be cast to any optional type.
+    public var nilEncodingStrategy: NilEncodingStrategy = .default
+
 
     /// Initializes `self` with default strategies.
     public init () {
@@ -66,6 +70,21 @@ public struct KeyValueEncoder: Sendable {
 
         /// A key encoding strategy that doesn’t change key names during encoding.
         case useDefaultKeys
+    }
+
+    public enum DateEncodingStrategy: Sendable {
+
+        /// Encodes dates by directly casting to Any.
+        case date
+
+        /// Encodes dates from ISO8601 strings.
+        case iso8601(options: ISO8601DateFormatter.Options = [.withInternetDateTime])
+
+        /// Encodes dates to Int in terms of milliseconds since midnight UTC on January 1, 1970.
+        case millisecondsSince1970
+
+        /// Encodes dates to Int in terms of seconds since midnight UTC on January 1, 1970.
+        case secondsSince1970
     }
 }
 
@@ -95,6 +114,12 @@ extension KeyValueEncoder: TopLevelEncoder {
 #endif
 
 extension KeyValueEncoder {
+
+    struct EncodingStrategy {
+        var optionals: NilEncodingStrategy
+        var keys: KeyEncodingStrategy
+        var dates: DateEncodingStrategy
+    }
 
     static func makePlistCompatible() -> KeyValueEncoder {
         var encoder = KeyValueEncoder()
@@ -161,15 +186,11 @@ private extension KeyValueEncoder.NilEncodingStrategy {
 
 private extension KeyValueEncoder {
 
-    struct EncodingStrategy {
-        var optionals: NilEncodingStrategy
-        var keys: KeyEncodingStrategy
-    }
-
     var strategy: EncodingStrategy {
         EncodingStrategy(
             optionals: nilEncodingStrategy,
-            keys: keyEncodingStrategy
+            keys: keyEncodingStrategy,
+            dates: dateEncodingStrategy
         )
     }
 
@@ -217,7 +238,7 @@ private extension KeyValueEncoder {
         }
 
         func encodeToValue<T>(_ value: T) throws -> EncodedValue where T: Encodable {
-            guard let encoded = EncodedValue(value) else {
+            guard let encoded = EncodedValue.makeValue(for: value, using: strategy) else {
                 try value.encode(to: self)
                 return try getEncodedValue()
             }
@@ -317,7 +338,7 @@ private extension KeyValueEncoder {
         }
 
         func encode<T: Encodable>(_ value: T, forKey key: Key) throws {
-            if let val = EncodedValue(value) {
+            if let val = EncodedValue.makeValue(for: value, using: strategy) {
                 setValue(val, forKey: key)
                 return
             }
@@ -447,7 +468,7 @@ private extension KeyValueEncoder {
         }
 
         func encode<T: Encodable>(_ value: T) throws {
-            if let val = EncodedValue(value) {
+            if let val = EncodedValue.makeValue(for: value, using: strategy) {
                 appendValue(val)
                 return
             }
@@ -566,7 +587,7 @@ private extension KeyValueEncoder {
         }
 
         func encode<T>(_ value: T) throws where T: Encodable {
-            if let encoded = EncodedValue(value) {
+            if let encoded = EncodedValue.makeValue(for: value, using: strategy) {
                 self.value = encoded
                 return
             }
@@ -687,20 +708,32 @@ struct AnyCodingKey: CodingKey {
 
 extension KeyValueEncoder.EncodedValue {
 
-    static func isSupportedValue(_ value: Any) -> Bool {
-        switch value {
-        case is Data: return true
-        case is Date: return true
-        case is URL: return true
-        case is Decimal: return true
-        default: return false
+    static func makeValue(for value: Any, using strategy: KeyValueEncoder.EncodingStrategy) -> Self? {
+        if let dataValue = value as? Data {
+            return .value(dataValue)
+        } else if let dateValue = value as? Date {
+            return makeValue(for: dateValue, using: strategy.dates)
+        } else if let urlValue = value as? URL {
+            return .value(urlValue)
+        } else if let decimalValue = value as? Decimal {
+            return .value(decimalValue)
+        } else {
+            return nil
         }
     }
 
-    init?(_ value: Any) {
-        guard Self.isSupportedValue(value) else {
-            return nil
+    static func makeValue(for date: Date, using strategy: KeyValueEncoder.DateEncodingStrategy) -> Self? {
+        switch strategy {
+        case .date:
+            return .value(date)
+        case .iso8601(options: let options):
+            let f = ISO8601DateFormatter()
+            f.formatOptions = options
+            return .value(f.string(from: date))
+        case .millisecondsSince1970:
+            return .value(Int(date.timeIntervalSince1970 * 1000))
+        case .secondsSince1970:
+            return .value(Int(date.timeIntervalSince1970))
         }
-        self = .value(value)
     }
 }
