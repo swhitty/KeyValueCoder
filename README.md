@@ -83,7 +83,7 @@ encoder.dateEncodingStrategy = .iso8601()
 let any = try encoder.encode(Date(timeIntervalSince1970: 0))
 ```
 
-Epochs are also supported using `.secondsSince1970` and `millisecondsSince1970`.
+Epochs are supported using `.secondsSince1970` and `.millisecondsSince1970` or use `.custom` to provide a closure for alternate coding.
 
 ## Nil Encoding/Decoding Strategy
 
