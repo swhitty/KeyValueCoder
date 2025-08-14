@@ -769,7 +769,11 @@ extension KeyValueEncoder.EncodedValue {
 
 private extension KeyValueEncoder.EncodedValue {
     static func isSupportedValue(_ value: Any) -> Bool {
-        Self.makeValue(for: value, using: .default) != nil
+        do {
+            return try Self.makeValue(for: value, using: .default) != nil
+        } catch {
+            return false
+        }
     }
 }
 

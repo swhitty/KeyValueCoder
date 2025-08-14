@@ -695,6 +695,19 @@ struct KeyValueEncodedTests {
         #expect(
             try encoder.encode(referenceDate) as? Int == 978307200
         )
+
+#if compiler(>=6.1)
+        encoder.dateEncodingStrategy = .custom { _ in throw KeyValueDecoder.Error("🐟") }
+        var error = #expect(throws: EncodingError.self) {
+            try encoder.encode(referenceDate)
+        }
+        #expect(error?.context?.debugDescription == "Date at SELF cannot be encoded. 🐟")
+
+        error = #expect(throws: EncodingError.self) {
+            try encoder.encode(["calendar": [Date?.none, referenceDate]])
+        }
+        #expect(error?.context?.debugDescription == "Optional<Date> at SELF.calendar[1] cannot be encoded. 🐟")
+#endif
     }
 
     @Test
@@ -708,7 +721,7 @@ struct KeyValueEncodedTests {
     }
 
     @Test
-    func aa() {
+    func isOptionalNone() {
         #expect(KeyValueEncoder.NilEncodingStrategy.isOptionalNone(Int?.none as Any))
         #expect(KeyValueEncoder.NilEncodingStrategy.isOptionalNone(Int??.none as Any))
     }
@@ -831,7 +844,11 @@ extension KeyValueEncoder.EncodedValue {
 
 private extension KeyValueEncoder.EncodedValue {
     static func isSupportedValue(_ value: Any) -> Bool {
-        Self.makeValue(for: value, using: .default) != nil
+        do {
+            return try Self.makeValue(for: value, using: .default) != nil
+        } catch {
+            return false
+        }
     }
 }
 
@@ -867,6 +884,18 @@ private struct Null: Encodable {
     func encode(to encoder: any Encoder) throws {
         var container = encoder.singleValueContainer()
         try container.encodeNil()
+    }
+}
+
+private extension EncodingError {
+
+    var context: Context? {
+        switch self {
+        case .invalidValue(_, let context):
+            return context
+        default:
+            return nil
+        }
     }
 }
 #endif

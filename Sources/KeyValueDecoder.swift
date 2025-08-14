@@ -103,14 +103,36 @@ public struct KeyValueDecoder: Sendable {
         /// Decodes dates by casting from Any.
         case date
 
-        /// Decodes dates from ISO8601 strings.
-        case iso8601(options: ISO8601DateFormatter.Options = [.withInternetDateTime])
-
         /// Decodes dates in terms of milliseconds since midnight UTC on January 1st, 1970.
         case millisecondsSince1970
 
         /// Decodes dates in terms of seconds since midnight UTC on January 1st, 1970.
         case secondsSince1970
+
+        /// Decodes dates from Any using a closure
+        case custom(@Sendable (Any) throws -> Date)
+
+        /// Decodes dates from ISO8601 strings.
+        static func iso8601(options: ISO8601DateFormatter.Options = [.withInternetDateTime]) -> Self {
+            .custom {
+                guard let string = $0 as? String else {
+                    throw Error("Expected String but found \(type(of: $0))")
+                }
+                let formatter = ISO8601DateFormatter()
+                formatter.formatOptions = options
+                guard let date = formatter.date(from: string) else {
+                    throw Error("Failed to decode Date from ISO8601 string \(string)")
+                }
+                return date
+            }
+        }
+    }
+
+    struct Error: LocalizedError {
+        var errorDescription: String?
+        init(_ message: String) {
+            self.errorDescription = message
+        }
     }
 }
 
@@ -359,19 +381,18 @@ private extension KeyValueDecoder {
             switch strategy.dates {
             case .date:
                 return try getValue()
-            case .iso8601(options: let options):
-                let string = try decode(String.self)
-                let formatter = ISO8601DateFormatter()
-                formatter.formatOptions = options
-                guard let date = formatter.date(from: string) else {
-                    throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: codingPath, debugDescription: "Failed to decode Date from ISO8601 string \(string)"))
-                }
-                return date
             case .millisecondsSince1970:
                 return try Date(timeIntervalSince1970: TimeInterval(decode(Int.self)) / 1000)
 
             case .secondsSince1970:
                 return try Date(timeIntervalSince1970: TimeInterval(decode(Int.self)))
+
+            case .custom(let transform):
+                do {
+                    return try transform(self.value)
+                } catch {
+                    throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: codingPath, debugDescription: error.localizedDescription))
+                }
             }
         }
 
