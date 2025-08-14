@@ -46,7 +46,6 @@ public struct KeyValueEncoder: Sendable {
     /// The strategy to use for encoding `nil`. Defaults to `Optional<Any>.none` which can be cast to any optional type.
     public var nilEncodingStrategy: NilEncodingStrategy = .default
 
-
     /// Initializes `self` with default strategies.
     public init () {
         self.userInfo = [:]
