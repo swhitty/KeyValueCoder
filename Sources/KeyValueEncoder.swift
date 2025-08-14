@@ -77,14 +77,23 @@ public struct KeyValueEncoder: Sendable {
         /// Encodes dates by directly casting to Any.
         case date
 
-        /// Encodes dates from ISO8601 strings.
-        case iso8601(options: ISO8601DateFormatter.Options = [.withInternetDateTime])
-
         /// Encodes dates to Int in terms of milliseconds since midnight UTC on January 1, 1970.
         case millisecondsSince1970
 
         /// Encodes dates to Int in terms of seconds since midnight UTC on January 1, 1970.
         case secondsSince1970
+
+        /// Encodes dates to Any using a closure
+        case custom(@Sendable (Date) throws -> Any)
+
+        /// Encodes dates to ISO8601 strings.
+        static func iso8601(options: ISO8601DateFormatter.Options = [.withInternetDateTime]) -> Self {
+            .custom {
+                let formatter = ISO8601DateFormatter()
+                formatter.formatOptions = options
+                return formatter.string(from: $0)
+            }
+        }
     }
 }
 
@@ -238,7 +247,7 @@ private extension KeyValueEncoder {
         }
 
         func encodeToValue<T>(_ value: T) throws -> EncodedValue where T: Encodable {
-            guard let encoded = EncodedValue.makeValue(for: value, using: strategy) else {
+            guard let encoded = try EncodedValue.makeValue(for: value, at: codingPath, using: strategy) else {
                 try value.encode(to: self)
                 return try getEncodedValue()
             }
@@ -338,7 +347,7 @@ private extension KeyValueEncoder {
         }
 
         func encode<T: Encodable>(_ value: T, forKey key: Key) throws {
-            if let val = EncodedValue.makeValue(for: value, using: strategy) {
+            if let val = try EncodedValue.makeValue(for: value, at: codingPath, using: strategy) {
                 setValue(val, forKey: key)
                 return
             }
@@ -468,7 +477,7 @@ private extension KeyValueEncoder {
         }
 
         func encode<T: Encodable>(_ value: T) throws {
-            if let val = EncodedValue.makeValue(for: value, using: strategy) {
+            if let val = try EncodedValue.makeValue(for: value, at: codingPath.appending(index: count), using: strategy) {
                 appendValue(val)
                 return
             }
@@ -587,7 +596,7 @@ private extension KeyValueEncoder {
         }
 
         func encode<T>(_ value: T) throws where T: Encodable {
-            if let encoded = EncodedValue.makeValue(for: value, using: strategy) {
+            if let encoded = try EncodedValue.makeValue(for: value, at: codingPath, using: strategy) {
                 self.value = encoded
                 return
             }
@@ -708,11 +717,25 @@ struct AnyCodingKey: CodingKey {
 
 extension KeyValueEncoder.EncodedValue {
 
-    static func makeValue(for value: Any, using strategy: KeyValueEncoder.EncodingStrategy) -> Self? {
+    static func makeValue(for value: Any, at codingPath: [any CodingKey], using strategy: KeyValueEncoder.EncodingStrategy) throws -> Self? {
+        do {
+            return try makeValue(for: value, using: strategy)
+        } catch {
+            let valueDescription = strategy.optionals.isNull(value) ? "nil" : String(describing: type(of: value))
+            let context = EncodingError.Context(
+                codingPath: codingPath,
+                debugDescription: "\(valueDescription) at \(codingPath.makeKeyPath()) cannot be encoded. \(error.localizedDescription)",
+                underlyingError: error
+            )
+            throw EncodingError.invalidValue(value, context)
+        }
+    }
+
+    static func makeValue(for value: Any, using strategy: KeyValueEncoder.EncodingStrategy) throws -> Self? {
         if let dataValue = value as? Data {
             return .value(dataValue)
         } else if let dateValue = value as? Date {
-            return makeValue(for: dateValue, using: strategy.dates)
+            return try makeValue(for: dateValue, using: strategy.dates)
         } else if let urlValue = value as? URL {
             return .value(urlValue)
         } else if let decimalValue = value as? Decimal {
@@ -722,14 +745,12 @@ extension KeyValueEncoder.EncodedValue {
         }
     }
 
-    static func makeValue(for date: Date, using strategy: KeyValueEncoder.DateEncodingStrategy) -> Self? {
+    static func makeValue(for date: Date, using strategy: KeyValueEncoder.DateEncodingStrategy) throws -> Self? {
         switch strategy {
         case .date:
             return .value(date)
-        case .iso8601(options: let options):
-            let f = ISO8601DateFormatter()
-            f.formatOptions = options
-            return .value(f.string(from: date))
+        case .custom(let transform):
+            return try .value(transform(date))
         case .millisecondsSince1970:
             return .value(Int(date.timeIntervalSince1970 * 1000))
         case .secondsSince1970:
