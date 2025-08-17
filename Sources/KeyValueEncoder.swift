@@ -716,7 +716,11 @@ struct AnyCodingKey: CodingKey {
 
 extension KeyValueEncoder.EncodedValue {
 
-    static func makeValue(for value: Any, at codingPath: [any CodingKey], using strategy: KeyValueEncoder.EncodingStrategy) throws -> Self? {
+    static func makeValue(
+        for value: Any,
+        at codingPath: [any CodingKey],
+        using strategy: KeyValueEncoder.EncodingStrategy
+    ) throws -> Self? {
         do {
             return try makeValue(for: value, using: strategy)
         } catch {
