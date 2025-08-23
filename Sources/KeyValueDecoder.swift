@@ -29,7 +29,6 @@
 //  SOFTWARE.
 //
 
-import CoreFoundation
 import Foundation
 
 /// Top level encoder that converts `[String: Any]`, `[Any]` or `Any` into `Codable` types.
@@ -779,22 +778,44 @@ extension NSNumber {
         }
     }
 
-    func getNumberTypeID() -> CFNumberType? {
-        guard CFGetTypeID(self as CFTypeRef) == CFNumberGetTypeID() else { return nil }
-#if canImport(Darwin)
-        return CFNumberGetType(self as CFNumber)
-#else
-        guard type(of: self) != type(of: NSNumber(true)) else { return nil }
+    enum NumberTypeID: Int, Sendable {
+        case sInt8Type       = 1
+        case sInt16Type      = 2
+        case sInt32Type      = 3
+        case sInt64Type      = 4
+        case float32Type     = 5
+        case float64Type     = 6
+        case charType        = 7
+        case shortType       = 8
+        case intType         = 9
+        case longType        = 10
+        case longLongType    = 11
+        case floatType       = 12
+        case doubleType      = 13
+        case cfIndexType     = 14
+        case nsIntegerType   = 15
+        case cgFloatType     = 16
+    }
+
+    func getNumberTypeID() -> NumberTypeID? {
+        // Prevent misclassifying Bool as charType
+        if type(of: self) == type(of: NSNumber(value: true)) { return nil }
+
         switch String(cString: objCType) {
-        case "c": return CFNumberType.charType
-        case "s": return CFNumberType.shortType
-        case "i": return CFNumberType.intType
-        case "q": return CFNumberType.longLongType
-        case "d": return CFNumberType.doubleType
-        case "f": return CFNumberType.floatType
-        case "Q": return CFNumberType.longLongType
-        default: return nil
+        case "c": return .charType
+        case "C": return .sInt8Type
+        case "s": return .shortType
+        case "S": return .sInt16Type
+        case "i": return .intType
+        case "I": return .sInt32Type
+        case "l": return .longType
+        case "L": return .sInt32Type
+        case "q": return .longLongType
+        case "Q": return .sInt64Type
+        case "f": return .floatType
+        case "d": return .doubleType
+        case "B": return nil
+        default:  return nil
         }
-#endif
     }
 }
