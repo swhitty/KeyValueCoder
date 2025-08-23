@@ -892,7 +892,47 @@ struct KeyValueDecoderTests {
         #expect((true as NSNumber).getDoubleValue() == nil)
     }
 
-    @Test
+#if compiler(>=6.1)
+    @Test()
+    func decodingErrors() throws {
+
+        var error = #expect(throws: DecodingError.self) {
+            try KeyValueDecoder.decode(Seafood.self, from: 10)
+        }
+        #expect(error?.debugDescription == "Expected String at SELF, found Int")
+
+        error = #expect(throws: DecodingError.self) {
+            try KeyValueDecoder.decode(Seafood.self, from: 10)
+        }
+        #expect(error?.debugDescription == "Expected String at SELF, found Int")
+
+        error = #expect(throws: DecodingError.self) {
+            try KeyValueDecoder.decode(Int.self, from: NSNull())
+        }
+        #expect(error?.debugDescription == "Expected BinaryInteger at SELF, found NSNull")
+
+        error = #expect(throws: DecodingError.self) {
+            try KeyValueDecoder.decode(Int.self, from: Optional<Int>.none)
+        }
+        #expect(error?.debugDescription == "Expected BinaryInteger at SELF, found nil")
+
+        error = #expect(throws: DecodingError.self) {
+            try KeyValueDecoder.decode([Int].self, from: [0, 1, true] as [Any])
+        }
+        #expect(error?.debugDescription == "Expected BinaryInteger at SELF[2], found Bool")
+
+        error = #expect(throws: DecodingError.self) {
+            try KeyValueDecoder.decode(AllTypes.self, from: ["tArray": [["tString": 0]]] as [String: Any])
+        }
+        #expect(error?.debugDescription == "Expected String at SELF.tArray[0].tString, found Int")
+
+        error = #expect(throws: DecodingError.self) {
+            try KeyValueDecoder.decode(AllTypes.self, from: ["tArray": [["tString": 0]]] as [String: Any])
+        }
+        #expect(error?.debugDescription == "Expected String at SELF.tArray[0].tString, found Int")
+    }
+#else
+    @Test()
     func decodingErrors() throws {
         expectDecodingError(try KeyValueDecoder.decode(Seafood.self, from: 10)) { error in
             #expect(error.debugDescription == "Expected String at SELF, found Int")
@@ -913,6 +953,7 @@ struct KeyValueDecoderTests {
             #expect(error.debugDescription == "Expected String at SELF.tArray[0].tString, found Int")
         }
     }
+#endif
 
     @Test
     func int_ClampsDoubles() {
@@ -997,6 +1038,7 @@ struct KeyValueDecoderTests {
     #endif
 }
 
+#if compiler(<6.1)
 func expectDecodingError<T>(_ expression: @autoclosure () throws -> T,
                             file: String = #filePath,
                             line: Int = #line,
@@ -1012,6 +1054,7 @@ func expectDecodingError<T>(_ expression: @autoclosure () throws -> T,
         Issue.record(error, "Expected DecodingError", sourceLocation: location)
     }
 }
+#endif
 
 extension DecodingError {
 
