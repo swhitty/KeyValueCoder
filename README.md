@@ -62,8 +62,6 @@ let ascii = try KeyValueDecoder().decode([UInt8].self, from: [10, 100, 1000])
 
 The encoding of `Date` can be adjusted by setting the strategy.  
 
-By default `Date` instances are encoded by simply casting to `Any` but this adjusted by setting the strategy.  
-
 The default strategy casts to `Any` leaving the instance unchanged:
 
 ```swift
