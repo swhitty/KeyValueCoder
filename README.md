@@ -126,7 +126,7 @@ let any = try encoder.encode([1, 2, Int?.none, 3])
 
 ## Int Decoding Strategy
 
-The decoding of [`BinaryInteger`](https://developer.apple.com/documentation/swift/binaryinteger) types (`Int`, `UInt` etc) can be adjusted via `intDecodingStrategy`.
+The decoding of types conformin to [`BinaryInteger`](https://developer.apple.com/documentation/swift/binaryinteger) (e.g. `Int`, `UInt`) can be adjusted via `intDecodingStrategy`.
 
 The default strategy `IntDecodingStrategy.exact` ensures the source value is exactly represented by the decoded type allowing floating point values with no fractional part to be decoded:
 
