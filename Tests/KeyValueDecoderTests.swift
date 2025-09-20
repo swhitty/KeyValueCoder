@@ -29,7 +29,6 @@
 //  SOFTWARE.
 //
 
-#if canImport(Testing)
 @testable import KeyValueCoder
 
 import Foundation
@@ -1203,5 +1202,4 @@ private extension JSONEncoder {
         return try JSONSerialization.jsonObject(with: data, options: [])
     }
 }
-#endif
 #endif

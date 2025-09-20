@@ -29,7 +29,6 @@
 //  SOFTWARE.
 //
 
-#if canImport(Testing)
 @testable import KeyValueCoder
 
 import Foundation
@@ -315,5 +314,4 @@ private extension UserDefaults {
         return UserDefaults(suiteName: function)!
     }
 }
-#endif
 #endif

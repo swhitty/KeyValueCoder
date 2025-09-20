@@ -29,7 +29,6 @@
 //  SOFTWARE.
 //
 
-#if canImport(Testing)
 @testable import KeyValueCoder
 
 import Foundation
@@ -898,4 +897,3 @@ private extension EncodingError {
         }
     }
 }
-#endif
