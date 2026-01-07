@@ -381,10 +381,10 @@ private extension KeyValueDecoder {
             case .date:
                 return try getValue()
             case .millisecondsSince1970:
-                return try Date(timeIntervalSince1970: TimeInterval(decode(Int.self)) / 1000)
+                return try Date(timeIntervalSince1970: TimeInterval(decode(Int64.self)) / 1000)
 
             case .secondsSince1970:
-                return try Date(timeIntervalSince1970: TimeInterval(decode(Int.self)))
+                return try Date(timeIntervalSince1970: TimeInterval(decode(Int64.self)))
 
             case .custom(let transform):
                 do {

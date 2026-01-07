@@ -687,12 +687,12 @@ struct KeyValueEncodedTests {
 
         encoder.dateEncodingStrategy = .millisecondsSince1970
         #expect(
-            try encoder.encode(referenceDate) as? Int == 978307200000
+            try encoder.encode(referenceDate) as? Int64 == 978307200000
         )
 
         encoder.dateEncodingStrategy = .secondsSince1970
         #expect(
-            try encoder.encode(referenceDate) as? Int == 978307200
+            try encoder.encode(referenceDate) as? Int64 == 978307200
         )
 
 #if compiler(>=6.1)

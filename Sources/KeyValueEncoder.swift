@@ -755,9 +755,9 @@ extension KeyValueEncoder.EncodedValue {
         case .custom(let transform):
             return try .value(transform(date))
         case .millisecondsSince1970:
-            return .value(Int(date.timeIntervalSince1970 * 1000))
+            return .value(Int64(date.timeIntervalSince1970 * 1000))
         case .secondsSince1970:
-            return .value(Int(date.timeIntervalSince1970))
+            return .value(Int64(date.timeIntervalSince1970))
         }
     }
 }

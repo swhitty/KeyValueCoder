@@ -425,7 +425,7 @@ struct KeyValueDecoderTests {
 
         decoder.dateDecodingStrategy = .millisecondsSince1970
         #expect(
-            try decoder.decode(Date.self, from: 978307200000) == referenceDate
+            try decoder.decode(Date.self, from: Int64(978307200000)) == referenceDate
         )
 
         decoder.dateDecodingStrategy = .secondsSince1970
