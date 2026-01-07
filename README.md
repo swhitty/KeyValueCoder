@@ -8,8 +8,6 @@ A Swift library for serializing `Codable` types to and from `Any` and `UserDefau
 
 ## Usage
 
-### UserDefaults
-
 Encode and decode [`Codable`](https://developer.apple.com/documentation/swift/codable) types with [`UserDefaults`](https://developer.apple.com/documentation/foundation/userdefaults):
 
 ```swift
@@ -51,7 +49,9 @@ let url = try UserDefaults.standard.decode(URL.self, forKey: "url")
 let duration = try UserDefaults.standard.decode(Duration.self, forKey: "duration")
 ```
 
-### KeyValueEncoder
+### Any
+
+All values are encoded and decoded via `Any`.
 
 [`RawRepresentable`](https://developer.apple.com/documentation/swift/rawrepresentable) types are encoded to their raw value:
 
@@ -78,8 +78,6 @@ struct User: Codable {
 // ["id": 1, "name": "Herbert"]
 let any = try KeyValueEncoder().encode(User(id: 1, name: "Herbert"))
 ```
-
-### KeyValueDecoder
 
 Decode values from `Any`:
 
