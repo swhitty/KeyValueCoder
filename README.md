@@ -8,6 +8,51 @@ A Swift library for serializing `Codable` types to and from `Any` and `UserDefau
 
 ## Usage
 
+### UserDefaults
+
+Encode and decode [`Codable`](https://developer.apple.com/documentation/swift/codable) types with [`UserDefaults`](https://developer.apple.com/documentation/foundation/userdefaults):
+
+```swift
+try UserDefaults.standard.encode(
+  User(id: "1", name: "Herbert"), 
+  forKey: "owner"
+)
+
+try UserDefaults.standard.encode(
+  URL(string: "fish.com"), 
+  forKey: "url"
+)
+
+try UserDefaults.standard.encode(
+  Duration.nanoseconds(1), 
+  forKey: "duration"
+)
+```
+
+Values are persisted in a friendly representation of plist native types:
+
+```swift
+let defaults = UserDefaults.standard.dictionaryRepresentation()
+
+[
+  "owner": ["id": 1, "name": "Herbert"],
+  "url": URL(string: "fish.com"),
+  "duration": [0, 1000000000]
+]
+```
+
+Decode values from the defaults:
+
+```swift
+let owner = try UserDefaults.standard.decode(Person.self, forKey: "owner")
+
+let url = try UserDefaults.standard.decode(URL.self, forKey: "url") 
+
+let duration = try UserDefaults.standard.decode(Duration.self, forKey: "duration")
+```
+
+### KeyValueEncoder
+
 [`RawRepresentable`](https://developer.apple.com/documentation/swift/rawrepresentable) types are encoded to their raw value:
 
 ```swift
@@ -34,6 +79,8 @@ struct User: Codable {
 let any = try KeyValueEncoder().encode(User(id: 1, name: "Herbert"))
 ```
 
+### KeyValueDecoder
+
 Decode values from `Any`:
 
 ```swift
@@ -56,7 +103,6 @@ let user = try KeyValueDecoder().decode(User.self, from: [["id": 1, "name": "Her
 // throws DecodingError.typeMismatch 'Int at SELF[2], cannot be exactly represented by UInt8'
 let ascii = try KeyValueDecoder().decode([UInt8].self, from: [10, 100, 1000])
 ```
-
 
 ## Date Encoding/Decoding Strategy
 
@@ -177,46 +223,4 @@ var decoder = KeyValueDecoder()
 decoder.keyDecodingStrategy = .convertFromSnakeCase
 
 let person = try decoder.decode(Person.self, from: dict)
-```
-
-## UserDefaults
-Encode and decode [`Codable`](https://developer.apple.com/documentation/swift/codable) types with [`UserDefaults`](https://developer.apple.com/documentation/foundation/userdefaults):
-
-```swift
-try UserDefaults.standard.encode(
-  User(id: "1", name: "Herbert"), 
-  forKey: "owner"
-)
-
-try UserDefaults.standard.encode(
-  URL(string: "fish.com"), 
-  forKey: "url"
-)
-
-try UserDefaults.standard.encode(
-  Duration.nanoseconds(1), 
-  forKey: "duration"
-)
-```
-
-Values are persisted in a friendly representation of plist native types:
-
-```swift
-let defaults = UserDefaults.standard.dictionaryRepresentation()
-
-[
-  "owner": ["id": 1, "name": "Herbert"],
-  "url": URL(string: "fish.com"),
-  "duration": [0, 1000000000]
-]
-```
-
-Decode values from the defaults:
-
-```swift
-let owner = try UserDefaults.standard.decode(Person.self, forKey: "owner")
-
-let url = try UserDefaults.standard.decode(URL.self, forKey: "url") 
-
-let duration = try UserDefaults.standard.decode(Duration.self, forKey: "duration")
 ```
